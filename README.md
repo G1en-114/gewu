@@ -50,3 +50,7 @@
 ## 线稿渲染
 
 `src/scene/ink.ts` + `InkRenderer.tsx` 接管 R3F 渲染循环：颜色通道、法线/零件 ID 通道、（三视图时）两层深度剥离，合成时从深度、法线、零件 ID 的不连续处提取轮廓线。三视图在同一画布内按视口逐个渲染。
+
+## 自检
+
+`npm run build && npx vite preview --port 5199` 后运行 `node scripts/check-machines.mjs`：在无头 Edge 里逐个打开所有机器与子组件，切到最后一步和三视图，汇报控制台错误。
