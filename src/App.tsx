@@ -71,6 +71,18 @@ function useDeepLink() {
   }, []);
 }
 
+/** Opening an assembly puts it in its first study step (cut open, running, …). */
+function useFirstStep() {
+  const machine = useMachine();
+  useEffect(() => {
+    const first = machine.steps[0];
+    if (!first) return;
+    first.apply?.();
+    const { selected, set } = useStudio.getState();
+    set({ section: first.state.section, running: first.state.running, focus: first.state.focus, selected: selected ?? first.state.select });
+  }, [machine]);
+}
+
 /** Horizontal offset (px) of the projection centre, so the machine clears the text column. */
 function useStageShift() {
   const [shift, setShift] = useState(0);
@@ -86,6 +98,7 @@ function useStageShift() {
 export default function App() {
   const shift = useStageShift();
   useDeepLink();
+  useFirstStep();
   const clear = useStudio((s) => s.set);
   const machine = useMachine();
   const { Model, Driver, Backdrop } = machine;

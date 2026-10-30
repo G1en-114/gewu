@@ -1,6 +1,7 @@
 import { useStudio } from '../state';
 import { engine } from './engine';
 import { ice } from './ice';
+import { gearbox } from './gearbox';
 import { iphone } from './iphone';
 import { lock } from './lock';
 import { MODEL_T_LEVELS, modelT } from './model-t';
@@ -17,7 +18,7 @@ import type { MachineDef } from './types';
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, lock] },
-  { name: '动力', machines: [ice, engine, turbofan] },
+  { name: '动力', machines: [ice, engine, turbofan, gearbox] },
   { name: '整机', machines: [iphone, watch, modelT, saturnV] },
 ];
 
