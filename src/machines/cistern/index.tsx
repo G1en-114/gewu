@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import { useStudio } from '../../state';
@@ -54,6 +54,39 @@ function Animated({ apply, children }: { apply: (g: THREE.Group, s: ReturnType<t
   return <group ref={ref}>{children}</group>;
 }
 
+/** Lever: pivot near the handle, arm reaching over the flush valve. */
+const LEVER_PIVOT: [number, number] = [-W / 2 + 10, 300];
+const LEVER_LEN = FLAP[0] + W / 2 - 20;
+const leverAngle = (press: number) => press * 0.45;
+const FLAP_PIVOT: [number, number] = [FLAP[0] + 44, 16];
+/** Where the chain hooks on, in the flapper's frame (relative to its hinge). */
+const HOOK: [number, number] = [-70, 16];
+
+function chainEnds(): [THREE.Vector3, THREE.Vector3] {
+  const s = cisternState(cisternMotion.t);
+  const a = leverAngle(s.press);
+  const top = new THREE.Vector3(LEVER_PIVOT[0] + LEVER_LEN * Math.cos(a), LEVER_PIVOT[1] + LEVER_LEN * Math.sin(a) - 4, 0);
+  const f = -s.flap;
+  const bottom = new THREE.Vector3(FLAP_PIVOT[0] + HOOK[0] * Math.cos(f) - HOOK[1] * Math.sin(f), FLAP_PIVOT[1] + HOOK[0] * Math.sin(f) + HOOK[1] * Math.cos(f), 0);
+  return [bottom, top];
+}
+
+/** The chain hangs from the lever to the flapper (slack shown as a straight run). */
+function Chain() {
+  const ref = useRef<THREE.Group>(null);
+  const up = new THREE.Vector3(0, 1, 0);
+  const q = new THREE.Quaternion();
+  useFrame(() => {
+    if (!ref.current) return;
+    const [a, b] = chainEnds();
+    const d = b.clone().sub(a);
+    ref.current.position.copy(a).addScaledVector(d, 0.5);
+    ref.current.quaternion.copy(q.setFromUnitVectors(up, d.clone().normalize()));
+    ref.current.scale.set(1, d.length(), 1);
+  });
+  return <group ref={ref}><Cyl c={[0, 0, 0]} r={2} len={1} seg={6} /></group>;
+}
+
 /** Float arm pivot on the fill valve; the float sits on the water. */
 const PIVOT: [number, number] = [FILL_X + 20, 290];
 const ARM = 120;
@@ -87,7 +120,7 @@ export function Cistern() {
         <Callout id="flush-valve" p={[FLAP[0] + 62, 220, 10]} />
       </Part>
       <Part id="flapper">
-        <group position={[FLAP[0] + 44, 16, 0]}>
+        <group position={[FLAP_PIVOT[0], FLAP_PIVOT[1], 0]}>
           <Animated apply={(g, s) => { g.rotation.z = -s.flap; }}>
             <Turn k="ci-flapper" profile={[[0, 0], [44, 0], [44, 8], [30, 16], [0, 18]]} p={[-44, 0, 0]} seg={36} />
             <Box c={[-6, 6, 0]} s={[14, 6, 20]} />
@@ -96,15 +129,13 @@ export function Cistern() {
         <Callout id="flapper" p={[FLAP[0] - 40, 30, 30]} />
       </Part>
       <Part id="chain">
-        <Animated apply={(g, s) => { g.position.y = s.press * 60; }}>
-          <Rod a={[FLAP[0] - 10, 40, 0]} b={[FLAP[0] - 10, 285, 0]} r={2} seg={6} />
-        </Animated>
+        <Chain />
         <Callout id="chain" p={[FLAP[0] - 8, 200, 6]} />
       </Part>
       <Part id="lever">
-        <group position={[-W / 2 + 10, 300, D / 2 - 30]}>
-          <Animated apply={(g, s) => { g.rotation.z = -s.press * 0.45; }}>
-            <Box c={[(FLAP[0] + W / 2 - 20) / 2, 0, -D / 2 + 30]} s={[FLAP[0] + W / 2 - 20, 8, 10]} />
+        <group position={[LEVER_PIVOT[0], LEVER_PIVOT[1], D / 2 - 30]}>
+          <Animated apply={(g, s) => { g.rotation.z = leverAngle(s.press); }}>
+            <Box c={[LEVER_LEN / 2, 0, -D / 2 + 30]} s={[LEVER_LEN, 8, 10]} />
             <Box c={[-24, 0, 35]} s={[60, 14, 16]} />
           </Animated>
         </group>
