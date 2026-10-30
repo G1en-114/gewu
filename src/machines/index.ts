@@ -16,6 +16,7 @@ import { micrometer } from './micrometer';
 import { motor } from './motor';
 import { pen } from './pen';
 import { piano } from './piano';
+import { printer } from './printer';
 import { rotor } from './rotor';
 import { steering } from './steering';
 import { stirling } from './stirling';
@@ -35,7 +36,7 @@ import type { MachineDef } from './types';
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, centrifugal, geneva, micrometer, gyro] },
-  { name: '日常器物', machines: [lock, pen, cistern, aperture, iphone, watch, piano, bicycle] },
+  { name: '日常器物', machines: [lock, pen, cistern, aperture, iphone, watch, piano, printer, bicycle] },
   { name: '动力传动', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, brake, wind] },
   { name: '大型装备', machines: [rotor, elevator, excavator, modelT, saturnV] },
 ];
