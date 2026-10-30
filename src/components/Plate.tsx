@@ -16,7 +16,7 @@ export function TitleColumn() {
   const goStep = (index: number) => {
     const { state } = STUDY_STEPS[index];
     const { viewNonce } = useStudio.getState();
-    set({ step: index, explode: state.explode, section: state.section, running: state.running, load: state.load, governor: state.governor, selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1 });
+    set({ localExplode: null, step: index, explode: state.explode, section: state.section, running: state.running, load: state.load, governor: state.governor, selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1 });
   };
   const submit = () => {
     const prompt = input.trim();
@@ -125,7 +125,7 @@ export function PlateMeta({ onExport }: { onExport: (kind: 'png' | 'json') => vo
         ))}
       </div>
       <span className="meta-sep" />
-      <button type="button" onClick={() => set({ view, focus: null, viewNonce: viewNonce + 1, explode: 0, selected: null, section: false, step: 0 })}>复位</button>
+      <button type="button" onClick={() => set({ view, focus: null, viewNonce: viewNonce + 1, explode: 0, selected: null, localExplode: null, section: false, step: 0 })}>复位</button>
       <button type="button" onClick={() => onExport('png')}>PNG ↓</button>
       <button type="button" onClick={() => onExport('json')}>JSON ↓</button>
     </nav>
@@ -133,9 +133,14 @@ export function PlateMeta({ onExport }: { onExport: (kind: 'png' | 'json') => vo
 }
 
 export function PartsLegend() {
-  const { selected, hovered, set } = useStudio();
+  const { selected, hovered, localExplode, set } = useStudio();
   const focus = selected ?? hovered;
   const part = focus ? partById(focus) : null;
+  // A local explode follows the selection, and folds away when nothing is selected.
+  useEffect(() => {
+    const { localExplode: current } = useStudio.getState();
+    if (current && current !== selected) set({ localExplode: selected });
+  }, [selected, set]);
   return (
     <aside className="legend">
       {part && (
@@ -149,7 +154,14 @@ export function PartsLegend() {
             {selected && <button type="button" className="caption-close" onClick={() => set({ selected: null })} aria-label="取消选择">×</button>}
           </div>
           <p className="caption-body">{part.description}</p>
-          <p className="caption-mat">{part.material}</p>
+          <div className="caption-foot">
+            <p className="caption-mat">{part.material}</p>
+            {selected && (
+              <button type="button" className="caption-action" onClick={() => set({ localExplode: localExplode === selected ? null : selected, explode: 0 })}>
+                {localExplode === selected ? '收拢' : '局部展开'} <span aria-hidden="true">{localExplode === selected ? '↙' : '↗'}</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
       <table className="parts">

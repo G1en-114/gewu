@@ -2,9 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode }
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { partById } from '../data/machine';
-import { motion, useStudio } from '../state';
+import { useStudio } from '../state';
 import type { MachinePartId } from '../types/machine';
 import { createInkMaterial } from './ink';
+import { stageProgress } from './explode';
 
 /** World-space section plane; its constant is animated to sweep the cut in. */
 export const SECTION_PLANE = new THREE.Plane(new THREE.Vector3(0, 0, -1), 100);
@@ -36,7 +37,8 @@ export function Part({ id, tone = 1, children }: { id: MachinePartId; tone?: num
   useFrame((_, dt) => {
     const { selected, hovered } = useStudio.getState();
     const [x, y, z] = descriptor.explode;
-    group.current?.position.set(x * motion.explode, y * motion.explode, z * motion.explode);
+    const t = stageProgress(id);
+    group.current?.position.set(x * t, y * t, z * t);
     const k = 1 - Math.exp(-dt * 10);
     for (const material of [materials.solid, materials.clipped]) {
       const u = material.uniforms;
@@ -57,6 +59,11 @@ export function Part({ id, tone = 1, children }: { id: MachinePartId; tone?: num
         ref={group}
         name={`part-${id}`}
         onClick={onClick}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          const { localExplode } = useStudio.getState();
+          select({ selected: id, localExplode: localExplode === id ? null : id, explode: 0 });
+        }}
         onPointerOver={(event) => { event.stopPropagation(); select({ hovered: id }); document.body.style.cursor = 'pointer'; }}
         onPointerOut={() => { if (useStudio.getState().hovered === id) select({ hovered: null }); document.body.style.cursor = ''; }}
       >

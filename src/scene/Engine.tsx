@@ -5,6 +5,7 @@ import { ENGINE } from '../data/machine';
 import { motion } from '../state';
 import { bedSection, box, cyl, extrude, hexNut, lathe, sphere, stud, webShape } from './geometry';
 import { M, Part } from './Part';
+import { BOLT_SETS, stageProgress, type BoltSetId } from './explode';
 import {
   crossheadX, GOVERNOR, LEVER_PIVOT_Y, LEVER_YAW, leverAngle, leverOuterEnd, rockerPose, sleeveY,
   THROTTLE_ARM, THROTTLE_POS, throttleArmAngle, throttleArmTip, VALVE_GEAR,
@@ -28,12 +29,22 @@ function placeBar(mesh: THREE.Object3D | null, ax: number, ay: number, bx: numbe
   mesh.scale.set(Math.hypot(bx - ax, by - ay), 1, 1);
 }
 
-function Bolt({ p, axis = 'y', flip = false, clip = false }: { p: Vec3; axis?: 'x' | 'y' | 'z'; flip?: boolean; clip?: boolean }) {
+/**
+ * Hex nut on a stud, pointing along its local +y. Bolts in a removable set
+ * back out along that axis during the staged explode.
+ */
+function Bolt({ p, axis = 'y', flip = false, clip = false, set }: { p: Vec3; axis?: 'x' | 'y' | 'z'; flip?: boolean; clip?: boolean; set?: BoltSetId }) {
   const rotation: Vec3 = axis === 'x' ? (flip ? ALONG_NEG_X : ALONG_X) : axis === 'z' ? (flip ? [-HALF_PI, 0, 0] : ALONG_Z) : flip ? [Math.PI, 0, 0] : [0, 0, 0];
+  const out = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (set && out.current) out.current.position.y = BOLT_SETS[set].distance * stageProgress(set);
+  });
   return (
     <group position={p} rotation={rotation}>
-      <M geo={hexNut()} p={[0, 0.035, 0]} clip={clip} />
-      <M geo={stud()} p={[0, 0.095, 0]} clip={clip} />
+      <group ref={out}>
+        <M geo={hexNut()} p={[0, 0.035, 0]} clip={clip} />
+        <M geo={stud()} p={[0, 0.095, 0]} clip={clip} />
+      </group>
     </group>
   );
 }
@@ -119,7 +130,7 @@ function CylinderCover() {
   return (
     <Part id="cylinder-cover">
       <M clip geo={lathe('back-cover', [[0, 0], [0.84, 0], [0.84, 0.1], [0.42, 0.1], [0.36, 0.2], [0, 0.2]])} p={[-4.3, AX, 0]} r={ALONG_NEG_X} />
-      {boltCircle(8, 0.75).map(([y, z], i) => <Bolt key={i} p={[-4.4, AX + y, z]} axis="x" flip clip />)}
+      {boltCircle(8, 0.75).map(([y, z], i) => <Bolt key={i} p={[-4.4, AX + y, z]} axis="x" flip clip set="cover-bolts" />)}
       <M clip geo={cyl(0.05, 0.05, 0.14, 16)} p={[-4.57, AX, 0]} r={ALONG_X} />
       <Callout id="cylinder-cover" p={[-4.5, AX + 0.5, 0.2]} />
     </Part>
@@ -155,7 +166,7 @@ function ValveChest() {
     <Part id="valve-chest">
       <M clip geo={box(0.9, 0.4, 0.66)} p={[-3.5, AX + 0.92, 0]} />
       <M clip geo={box(1.0, 0.08, 0.76)} p={[-3.5, AX + 1.16, 0]} />
-      {[-3.92, -3.5, -3.08].flatMap((x) => [-0.3, 0.3].map((z) => <Bolt key={`${x}${z}`} p={[x, AX + 1.2, z]} clip />))}
+      {[-3.92, -3.5, -3.08].flatMap((x) => [-0.3, 0.3].map((z) => <Bolt key={`${x}${z}`} p={[x, AX + 1.2, z]} clip set="chest-bolts" />))}
       {/* valve spindle and gland on the crank side */}
       <M geo={lathe('valve-gland', [[0, 0], [0.12, 0], [0.12, 0.08], [0.08, 0.08], [0.08, 0.22], [0, 0.22]], 40)} p={[-3.05, AX + 0.92, 0]} r={ALONG_X} />
       {/* steam pipe, throttle valve and elbow */}
@@ -256,7 +267,7 @@ function BearingCaps() {
           <M geo={lathe('bearing-arch', [[0, 0], [0.2, 0], [0.2, 0.34], [0, 0.34]], 48)} p={[0, 0.0, -0.17]} r={ALONG_Z} s={[1, 1, 1]} />
           <M geo={cyl(0.05, 0.06, 0.12, 20)} p={[0, 0.24, 0]} />
           <M geo={sphere(0.035)} p={[0, 0.315, 0]} />
-          {[-0.25, 0.25].map((x) => <Bolt key={x} p={[x, 0.18, 0]} />)}
+          {[-0.25, 0.25].map((x) => <Bolt key={x} p={[x, 0.18, 0]} set="cap-bolts" />)}
         </group>
       ))}
       <Callout id="main-bearing" p={[CX + 0.3, AX + 0.18, -2.0]} />

@@ -221,6 +221,9 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .caption-close { margin-left: auto; font-size: 18px; line-height: 1; color: var(--ink-3); }
 .caption-body { margin: 10px 0 6px; font-size: 12.5px; line-height: 1.8; color: var(--ink-2); }
 .caption-mat { margin: 0; font: 500 12px var(--serif-en); letter-spacing: 0.14em; color: var(--ink-3); }
+.caption-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.caption-action { font-size: 12px; letter-spacing: 0.16em; color: var(--rust); white-space: nowrap; }
+.caption-action:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .parts { width: 100%; border-collapse: collapse; font-size: 12px; background: rgba(244, 240, 231, 0.82); }
 .parts caption { text-align: left; padding-bottom: 6px; font: 500 12px var(--serif-en); letter-spacing: 0.18em; color: var(--ink-3); }

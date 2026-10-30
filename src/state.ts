@@ -15,6 +15,8 @@ export interface StudioState {
   /** Bumped to make the camera return to the current view preset. */
   viewNonce: number;
   selected: MachinePartId | null;
+  /** Part opened on its own (local explode), with its neighbours. */
+  localExplode: MachinePartId | null;
   hovered: MachinePartId | null;
   step: number;
   /** Show numbered balloons for every part. */
@@ -32,6 +34,7 @@ export const useStudio = create<StudioState>((set) => ({
   focus: null,
   viewNonce: 0,
   selected: null,
+  localExplode: null,
   hovered: null,
   step: 0,
   labels: typeof window === 'undefined' || window.innerWidth >= 700,
@@ -45,6 +48,9 @@ export const useStudio = create<StudioState>((set) => ({
 export const motion = {
   /** Starts apart so the machine assembles itself on load. */
   explode: 1,
+  /** Local explode: which part, and its 0–1 progress. */
+  localPart: null as MachinePartId | null,
+  local: 0,
   theta: 0.6,
   /** Governor arm angle from vertical, radians. */
   phi: 0.26,

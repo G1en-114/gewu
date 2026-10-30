@@ -9,6 +9,7 @@ import { OVERLAY_LAYER } from './InkRenderer';
 import { PALETTE } from './ink';
 import { SECTION_PLANE } from './Part';
 import { governedOpening, phiForRpm } from './kinematics';
+import { BOLT_SETS, stageProgress, type BoltSetId, type StageId } from './explode';
 
 const AX = ENGINE.axisY;
 
@@ -58,26 +59,51 @@ function overlayLine(points: THREE.Vector3[], { dashed = true, opacity = 0.55, c
 const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 /** Where dashed assembly guides start, per exploded part (assembled positions). */
-function guideOrigins(): Array<[MachinePartId, THREE.Vector3]> {
-  const out: Array<[MachinePartId, THREE.Vector3]> = [];
+interface GuideOrigin {
+  stage: StageId;
+  origin: THREE.Vector3;
+  /** For bolts: the bolt's own axis. */
+  axis?: THREE.Vector3;
+}
+
+function guideOrigins(): GuideOrigin[] {
+  const out: GuideOrigin[] = [];
+  const bolt = (stage: BoltSetId, origin: THREE.Vector3, axis: THREE.Vector3) => out.push({ stage, origin, axis });
   for (let i = 0; i < 8; i += 1) {
     const a = Math.PI / 8 + (i * Math.PI) / 4;
-    out.push(['cylinder-cover', v(-4.4, AX + Math.sin(a) * 0.75, Math.cos(a) * 0.75)]);
+    bolt('cover-bolts', v(-4.47, AX + Math.sin(a) * 0.75, Math.cos(a) * 0.75), v(-1, 0, 0));
   }
-  out.push(['cylinder-cover', v(-4.64, AX, 0)]);
-  out.push(['piston', v(-3.7, AX, 0)]);
-  [-3.92, -3.08].forEach((x) => [-0.3, 0.3].forEach((z) => out.push(['valve-chest', v(x, AX + 1.2, z)])));
-  out.push(['valve-chest', v(-3.5, AX + 2.02, 0)]);
-  out.push(['crosshead', v(-0.8, AX, 0.21)]);
-  out.push(['connecting-rod', v(0.4, AX + 0.2, 0.1)]);
-  out.push(['crankshaft', v(ENGINE.crankX, AX, 0.14)]);
-  [-0.48, -2.0].forEach((z) => [-0.25, 0.25].forEach((dx) => out.push(['main-bearing', v(ENGINE.crankX + dx, AX + 0.18, z)])));
-  out.push(['flywheel', v(ENGINE.crankX, AX, ENGINE.flywheelZ)]);
-  out.push(['governor', v(ENGINE.governor[0], 3.95 + 0.3, ENGINE.governor[2])]);
-  out.push(['valve-gear', v(-1.9, 1.75, -0.42)]);
-  out.push(['valve-gear', v(ENGINE.crankX, AX, -0.8)]);
+  [-3.92, -3.5, -3.08].forEach((x) => [-0.3, 0.3].forEach((z) => bolt('chest-bolts', v(x, AX + 1.27, z), v(0, 1, 0))));
+  [-0.48, -2.0].forEach((z) => [-0.25, 0.25].forEach((dx) => bolt('cap-bolts', v(ENGINE.crankX + dx, AX + 0.25, z), v(0, 1, 0))));
+  const part = (stage: MachinePartId, origin: THREE.Vector3) => out.push({ stage, origin });
+  out.push({ stage: 'cylinder-cover', origin: v(-4.64, AX, 0) });
+  out.push({ stage: 'piston', origin: v(-3.7, AX, 0) });
+  part('valve-chest', v(-3.5, AX + 2.02, 0));
+  part('crosshead', v(-0.8, AX, 0.21));
+  part('connecting-rod', v(0.4, AX + 0.2, 0.1));
+  part('crankshaft', v(ENGINE.crankX, AX, 0.14));
+  [-0.48, -2.0].forEach((z) => part('main-bearing', v(ENGINE.crankX, AX + 0.18, z)));
+  part('flywheel', v(ENGINE.crankX, AX, ENGINE.flywheelZ));
+  part('governor', v(ENGINE.governor[0], 3.95 + 0.3, ENGINE.governor[2]));
+  part('valve-gear', v(-1.9, 1.75, -0.42));
+  part('valve-gear', v(ENGINE.crankX, AX, -0.8));
   return out;
 }
+
+/** Current displacement of a guide's point: its part's travel plus, for bolts, the bolt's own. */
+function guideOffset(g: GuideOrigin, out: THREE.Vector3) {
+  if (g.axis) {
+    const set = BOLT_SETS[g.stage as BoltSetId];
+    const [x, y, z] = partById(set.owner).explode;
+    const t = stageProgress(set.owner);
+    return out.set(x * t, y * t, z * t).addScaledVector(g.axis, set.distance * stageProgress(g.stage));
+  }
+  const [x, y, z] = partById(g.stage as MachinePartId).explode;
+  const t = stageProgress(g.stage);
+  return out.set(x * t, y * t, z * t);
+}
+
+const scratch = new THREE.Vector3();
 
 export function Guides() {
   const { scene } = useThree();
@@ -134,19 +160,20 @@ export function Guides() {
   useFrame(() => {
     const { explodeLines, origins, arrow } = objects;
     const attr = explodeLines.geometry.getAttribute('position') as THREE.BufferAttribute;
-    origins.forEach(([id, origin], i) => {
-      const [x, y, z] = partById(id).explode;
-      const e = motion.explode;
-      attr.setXYZ(i * 2, origin.x, origin.y, origin.z);
-      attr.setXYZ(i * 2 + 1, origin.x + x * e, origin.y + y * e, origin.z + z * e);
+    let any = false;
+    origins.forEach((g, i) => {
+      const d = guideOffset(g, scratch);
+      if (d.lengthSq() > 1e-4) any = true;
+      attr.setXYZ(i * 2, g.origin.x, g.origin.y, g.origin.z);
+      attr.setXYZ(i * 2 + 1, g.origin.x + d.x, g.origin.y + d.y, g.origin.z + d.z);
     });
     attr.needsUpdate = true;
     explodeLines.computeLineDistances();
-    explodeLines.visible = motion.explode > 0.02;
-    (explodeLines.material as THREE.LineDashedMaterial).opacity = 0.5 * Math.min(1, motion.explode * 3);
+    explodeLines.visible = any;
 
     const [fx, fy, fz] = partById('flywheel').explode;
-    arrow.position.set(ENGINE.crankX + fx * motion.explode, AX + fy * motion.explode, ENGINE.flywheelZ + fz * motion.explode);
+    const tf = stageProgress('flywheel');
+    arrow.position.set(ENGINE.crankX + fx * tf, AX + fy * tf, ENGINE.flywheelZ + fz * tf);
   });
 
   return null;
@@ -160,9 +187,18 @@ const LOAD = 48;
 export function MotionDriver() {
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
-    const { explode, running, load, governor, section } = useStudio.getState();
-    const k = 1 - Math.exp(-dt * 3.2);
-    motion.explode += (explode - motion.explode) * k;
+    const { explode, running, load, governor, section, localExplode } = useStudio.getState();
+    // Constant-rate easing keeps the staged teardown evenly paced.
+    const diff = explode - motion.explode;
+    motion.explode += Math.sign(diff) * Math.min(Math.abs(diff), dt * 0.55);
+
+    // Local explode: fold the previous part away before opening the next one.
+    if (motion.localPart !== localExplode) {
+      motion.local = Math.max(0, motion.local - dt * 1.4);
+      if (motion.local === 0) motion.localPart = localExplode;
+    } else if (localExplode) {
+      motion.local = Math.min(1, motion.local + dt * 0.55);
+    }
 
     // A deliberately simple engine: steam torque scales with the throttle
     // opening, the load and friction pull speed down. With the governor
