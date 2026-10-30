@@ -7,6 +7,7 @@ import { cistern } from './cistern';
 import { elevator } from './elevator';
 import { EXCAVATOR_LEVELS, excavator } from './excavator';
 import { gearbox } from './gearbox';
+import { gyro } from './gyro';
 import { iphone } from './iphone';
 import { micrometer } from './micrometer';
 import { motor } from './motor';
@@ -30,7 +31,7 @@ import type { MachineDef } from './types';
 /** Machines in the order the switcher lists them. */
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
-  { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen, micrometer, aperture, cistern] },
+  { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen, micrometer, aperture, cistern, gyro] },
   { name: '动力', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, wind] },
   { name: '整机', machines: [iphone, watch, piano, rotor, elevator, bicycle, excavator, modelT, saturnV] },
 ];
