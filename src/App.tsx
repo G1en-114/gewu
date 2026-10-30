@@ -56,6 +56,7 @@ export default function App() {
   const machine = useMachine();
   const { Model, Driver, Backdrop } = machine;
   const drawingMode = useStudio((s) => s.view === 'drawing');
+  const moveMode = useStudio((s) => s.moveMode);
   const [recording, setRecording] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const onExport = async (kind: 'plate' | 'video' | 'json') => {
@@ -101,7 +102,7 @@ export default function App() {
       <TitleColumn />
       <PlateMeta onExport={onExport} busy={busy} recording={recording} />
       <PartsLegend />
-      <p className="stage-hint">{drawingMode ? '第一角画法 · 悬停或点选零件查看投影关系' : '拖动旋转 · 滚轮缩放 · 点选零件'}</p>
+      <p className="stage-hint">{drawingMode ? '第一角画法 · 悬停或点选零件查看投影关系' : moveMode ? '按住零件拖动来挪动 · 拖空白处旋转 · 选中后可调大小' : '拖动旋转 · 滚轮缩放 · 点选零件'}</p>
     </div>
   );
 }

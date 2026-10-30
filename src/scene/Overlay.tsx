@@ -122,7 +122,8 @@ export function Guides() {
 export function MotionDriver() {
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
-    const { explode, section, localExplode } = useStudio.getState();
+    const { explode, section, localExplode, deep } = useStudio.getState();
+    motion.deep += Math.sign((deep ? 1 : 0) - motion.deep) * Math.min(Math.abs((deep ? 1 : 0) - motion.deep), dt * 0.2);
     // Constant-rate easing keeps the staged teardown evenly paced.
     const diff = explode - motion.explode;
     motion.explode += Math.sign(diff) * Math.min(Math.abs(diff), dt * motion.explodeRate);
@@ -180,10 +181,14 @@ export function CameraRig({ shift }: { shift: number }) {
     // Pull back and look higher as the machine comes apart, keeping whatever
     // orbit and zoom the viewer has chosen.
     const ex = machine.camera.exploded;
-    if (ex && controls && !tween.current) {
-      const k = Math.min(1, motion.explode + motion.local * 0.5);
-      const shift = v3(ex.target).sub(v3(machine.camera.target)).multiplyScalar(k);
-      const scale = 1 + (ex.scale - 1) * k;
+    const deep = machine.camera.deep;
+    if ((ex || deep) && controls && !tween.current) {
+      const k = ex ? Math.min(1, motion.explode + motion.local * 0.5) : 0;
+      const d = deep ? motion.deep : 0;
+      const base = v3(machine.camera.target);
+      const look = base.clone().lerp(ex ? v3(ex.target) : base, k).lerp(deep ? v3(deep.target) : base, d);
+      const shift = look.sub(base);
+      const scale = THREE.MathUtils.lerp(1 + ((ex?.scale ?? 1) - 1) * k, deep?.scale ?? 1, d);
       const delta = shift.clone().sub(applied.current.shift);
       controls.target.add(delta);
       camera.position.add(delta);

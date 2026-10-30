@@ -15,6 +15,8 @@ export interface PartDef {
   explode: Vec3;
   /** Window of the 0–1 explode slider in which this part travels (teardown order). */
   stage: [number, number];
+  /** For a subassembly: extra travel when the whole tree is exploded, to set it out beside the machine. */
+  deep?: Vec3;
 }
 
 /** Fasteners that back out along their own axis before their owner part moves. */
@@ -51,6 +53,8 @@ export interface CameraDef {
   orthoDistance: number;
   /** When fully exploded: where to look, and how much further back (multiplies distance). */
   exploded?: { target: Vec3; scale: number };
+  /** When the whole tree is exploded: where to look and how far back. */
+  deep?: { target: Vec3; scale: number };
   /** Close-ups used by the study steps. */
   foci?: Record<string, { target: Vec3; scale: number }>;
 }

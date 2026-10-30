@@ -1,6 +1,6 @@
 import { currentMachine } from '../machines';
 import type { BoltSetDef, PartDef } from '../machines/types';
-import { motion } from '../state';
+import { motion, partEdits } from '../state';
 
 /**
  * Staged disassembly. Every part and every removable bolt set owns a window
@@ -46,5 +46,20 @@ export function partOffset(id: string, out: { set: (x: number, y: number, z: num
   const def = partDef(id);
   const t = stageProgress(id);
   const [x, y, z] = def?.explode ?? [0, 0, 0];
-  out.set(x * t, y * t, z * t);
+  const [dx, dy, dz] = partEdits.get(id)?.offset ?? [0, 0, 0];
+  // Exploding the whole tree first pulls each subassembly out beside the machine.
+  const d = def?.deep ? smooth(motion.deep / 0.3) : 0;
+  const [ax, ay, az] = def?.deep ?? [0, 0, 0];
+  out.set(x * t + dx + ax * d, y * t + dy + ay * d, z * t + dz + az * d);
+}
+
+/**
+ * Progress of a part inside a subassembly drawn within its parent: it only
+ * comes apart when the whole tree is exploded, after the subassemblies have
+ * been pulled out, in its own teardown order.
+ */
+export function deepProgress([a, b]: [number, number]) {
+  if (b <= a) return 0;
+  const t = (motion.deep - 0.3) / 0.7;
+  return smooth((t - a) / (b - a));
 }

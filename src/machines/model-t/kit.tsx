@@ -184,6 +184,7 @@ export function level(def: MachineDef): MachineDef {
       offset: s(c.offset),
       orthoDistance: c.orthoDistance * u,
       exploded: c.exploded && { target: s(c.exploded.target), scale: c.exploded.scale },
+      deep: c.deep && { target: s(c.deep.target), scale: c.deep.scale },
       foci: c.foci && Object.fromEntries(Object.entries(c.foci).map(([k, f]) => [k, { target: s(f.target), scale: f.scale }])),
     },
   };

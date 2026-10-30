@@ -126,7 +126,7 @@ export function RearAxle() {
 const PARTS: PartDef[] = [
   { id: 'housing-l', index: 1, name: '后桥壳（左）', en: 'Axle Housing, Left', role: '支承 · 封装', material: '铸钢 + 钢管', description: 'T 型车后桥壳在正中纵向剖分成左右两半，中间合成差速器的“碗”，两边是装半轴的管子。', explode: [0, 0, 0], stage: [1, 1] },
   { id: 'housing-r', index: 2, name: '后桥壳（右）', en: 'Axle Housing, Right', role: '支承 · 封装', material: '铸钢 + 钢管', description: '和左半壳用一圈螺栓合在一起。要修差速器，就得把整个后桥拆下来、分开两半。', explode: [0, 0, 7], stage: [0.5, 0.62] },
-  { id: 'differential', index: 3, name: '差速器', en: 'Differential', role: '减速 · 差速', material: '钢', description: '锥齿轮主减速器和差速器装在一起，位于后桥中央。双击或点“拆开此组件”看里面。', explode: [0, 10, 2], stage: [0.62, 0.76] },
+  { id: 'differential', index: 3, name: '差速器', en: 'Differential', role: '减速 · 差速', material: '钢', description: '锥齿轮主减速器和差速器装在一起，位于后桥中央。双击或点“拆开此组件”看里面。', explode: [0, 10, 2], stage: [0.62, 0.76], deep: [0, 4, 14] },
   { id: 'axle-l', index: 4, name: '半轴（左）', en: 'Axle Shaft, Left', role: '驱动左轮', material: '钢', description: '内端插进差速器的半轴齿轮，外端锥面上装制动鼓和车轮。', explode: [0, 0, -16], stage: [0.36, 0.48] },
   { id: 'axle-r', index: 5, name: '半轴（右）', en: 'Axle Shaft, Right', role: '驱动右轮', material: '钢', description: '同左半轴。外端的制动鼓配手刹：拉手刹时蹄片在鼓里撑开。', explode: [0, 0, 16], stage: [0.32, 0.44] },
   { id: 'torque-tube', index: 6, name: '扭力管与传动轴', en: 'Torque Tube & Drive Shaft', role: '传动 · 推车前进', material: '钢管', description: '传动轴装在扭力管里，前端万向节接变速器，管子前端的球头座在变速器后面——后桥推车前进的力就经这根管子传给车架。', explode: [16, 0, 0], stage: [0.18, 0.32] },
@@ -179,6 +179,6 @@ export const rearAxleLevel = level({
   ],
   centreLines: [[[0, 0, -31], [0, 0, 31], 4.2], [[-2, 0, 0], [66, 0, 0]]],
   steps: STEPS,
-  camera: { target: [24, 1, 0], offset: [70, 70, 120], orthoDistance: 420, exploded: { target: [26, 3, 0], scale: 1.3 } },
+  camera: { target: [24, 1, 0], offset: [70, 70, 120], orthoDistance: 420, exploded: { target: [26, 3, 0], scale: 1.3 }, deep: { target: [24, 6, 8], scale: 1.45 } },
   Model: RearAxle,
 });

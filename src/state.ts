@@ -22,6 +22,12 @@ export interface StudioState {
   /** Drawing mode: dashed hidden outlines, and projection lines for the selected part. */
   hiddenLines: boolean;
   projection: boolean;
+  /** Drag parts around instead of orbiting the view. */
+  moveMode: boolean;
+  /** Explode the whole tree: subassemblies come out beside the machine and come apart too. */
+  deep: boolean;
+  /** Bumped when a part's size or position is edited from the UI. */
+  editNonce: number;
   set: (patch: Partial<Omit<StudioState, 'set'>>) => void;
 }
 
@@ -40,6 +46,9 @@ export const useStudio = create<StudioState>((set) => ({
   labels: typeof window === 'undefined' || window.innerWidth >= 700,
   hiddenLines: true,
   projection: true,
+  moveMode: false,
+  deep: false,
+  editNonce: 0,
   set: (patch) => set(patch),
 }));
 
@@ -56,7 +65,31 @@ export const motion = {
   /** Local explode: which part, and its 0–1 progress. */
   localPart: null as string | null,
   local: 0,
+  /** 0–1 progress of the whole-tree explode. */
+  deep: 0,
 };
+
+/**
+ * The viewer's own edits to parts of the current assembly: where they have
+ * been dragged (in model units, on top of the explode) and how big they are.
+ */
+export const partEdits = new Map<string, { offset: [number, number, number]; scale: number }>();
+
+export function editOf(id: string) {
+  let edit = partEdits.get(id);
+  if (!edit) {
+    edit = { offset: [0, 0, 0], scale: 1 };
+    partEdits.set(id, edit);
+  }
+  return edit;
+}
+
+/** Forget one part's edits, or all of them. */
+export function clearEdits(id?: string) {
+  if (id) partEdits.delete(id);
+  else partEdits.clear();
+  useStudio.setState((s) => ({ editNonce: s.editNonce + 1 }));
+}
 
 /** Switch machine: reset the study state and let the new machine assemble itself. */
 export function selectMachine(id: string) {
@@ -65,8 +98,10 @@ export function selectMachine(id: string) {
   motion.explode = 1;
   motion.local = 0;
   motion.localPart = null;
+  motion.deep = 0;
+  partEdits.clear();
   useStudio.getState().set({
     machineId: id, explode: 0, section: false, running: true, view: 'perspective', focus: null,
-    viewNonce: viewNonce + 1, selected: null, hovered: null, localExplode: null, step: 0,
+    viewNonce: viewNonce + 1, selected: null, hovered: null, localExplode: null, step: 0, deep: false,
   });
 }

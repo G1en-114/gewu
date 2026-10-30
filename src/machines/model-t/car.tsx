@@ -212,13 +212,13 @@ export function ModelT() {
 
 const PARTS_RAW: Array<Omit<PartDef, 'index'>> = [
   { id: 'frame', name: '车架', en: 'Frame', role: '骨架', material: '钒钢槽钢', description: '两根槽钢纵梁加几道横梁，发动机、车身、前后桥都挂在它上面。两副横置钢板弹簧把车架托在前后桥上。', explode: [0, 0, 0], stage: [1, 1] },
-  { id: 'engine', name: '动力总成', en: 'Engine & Transmission', role: '动力', material: '铸铁 / 钢', description: '四缸发动机、飞轮磁电机和行星变速器连成一体，三点悬挂在车架上。点“拆开此组件”进入发动机。', explode: [0, 16, 0], stage: [0.46, 0.58] },
-  { id: 'front-axle', name: '前桥', en: 'Front Axle', role: '承重 · 转向', material: '钒钢', description: '工字形前轴、转向节、横拉杆和径向杆，上面一副横置钢板弹簧。可继续拆开。', explode: [12, -4, 0], stage: [0.7, 0.8] },
-  { id: 'rear-axle', name: '后桥', en: 'Rear Axle', role: '驱动 · 承重', material: '钢', description: '差速器、半轴、扭力管和横置钢板弹簧。可继续拆开，差速器还能再拆。', explode: [-16, -3, 0], stage: [0.76, 0.88] },
-  { id: 'wheel-fl', name: '左前轮', en: 'Wheel, Front Left', role: '行驶 · 转向', material: '木 / 钢 / 橡胶', description: '前轮 30 × 3 英寸。木辐条炮车轮：12 根辐条、钢轮辋、钳入式轮胎。可继续拆开。', explode: [0, 0, -18], stage: [0.56, 0.64] },
-  { id: 'wheel-fr', name: '右前轮', en: 'Wheel, Front Right', role: '行驶 · 转向', material: '木 / 钢 / 橡胶', description: '和左前轮相同。可继续拆开。', explode: [0, 0, 18], stage: [0.58, 0.66] },
-  { id: 'wheel-rl', name: '左后轮', en: 'Wheel, Rear Left', role: '驱动', material: '木 / 钢 / 橡胶', description: '后轮 30 × 3½ 英寸，轮毂装在半轴外端的制动鼓上。可继续拆开。', explode: [0, 0, -18], stage: [0.6, 0.68] },
-  { id: 'wheel-rr', name: '右后轮', en: 'Wheel, Rear Right', role: '驱动', material: '木 / 钢 / 橡胶', description: '和左后轮相同。可继续拆开。', explode: [0, 0, 18], stage: [0.62, 0.7] },
+  { id: 'engine', name: '动力总成', en: 'Engine & Transmission', role: '动力', material: '铸铁 / 钢', description: '四缸发动机、飞轮磁电机和行星变速器连成一体，三点悬挂在车架上。点“拆开此组件”进入发动机。', explode: [0, 16, 0], stage: [0.46, 0.58], deep: [-27, -3.5, 110] },
+  { id: 'front-axle', name: '前桥', en: 'Front Axle', role: '承重 · 转向', material: '钒钢', description: '工字形前轴、转向节、横拉杆和径向杆，上面一副横置钢板弹簧。可继续拆开。', explode: [12, -4, 0], stage: [0.7, 0.8], deep: [48, 4, 105] },
+  { id: 'rear-axle', name: '后桥', en: 'Rear Axle', role: '驱动 · 承重', material: '钢', description: '差速器、半轴、扭力管和横置钢板弹簧。可继续拆开，差速器还能再拆。', explode: [-16, -3, 0], stage: [0.76, 0.88], deep: [-14, 3, 190] },
+  { id: 'wheel-fl', name: '左前轮', en: 'Wheel, Front Left', role: '行驶 · 转向', material: '木 / 钢 / 橡胶', description: '前轮 30 × 3 英寸。木辐条炮车轮：12 根辐条、钢轮辋、钳入式轮胎。可继续拆开。', explode: [0, 0, -18], stage: [0.56, 0.64], deep: [0, 0, 236] },
+  { id: 'wheel-fr', name: '右前轮', en: 'Wheel, Front Right', role: '行驶 · 转向', material: '木 / 钢 / 橡胶', description: '和左前轮相同。可继续拆开。', explode: [0, 0, 18], stage: [0.58, 0.66], deep: [35, 0, 144] },
+  { id: 'wheel-rl', name: '左后轮', en: 'Wheel, Rear Left', role: '驱动', material: '木 / 钢 / 橡胶', description: '后轮 30 × 3½ 英寸，轮毂装在半轴外端的制动鼓上。可继续拆开。', explode: [0, 0, -18], stage: [0.6, 0.68], deep: [170, 0, 236] },
+  { id: 'wheel-rr', name: '右后轮', en: 'Wheel, Rear Right', role: '驱动', material: '木 / 钢 / 橡胶', description: '和左后轮相同。可继续拆开。', explode: [0, 0, 18], stage: [0.62, 0.7], deep: [205, 0, 144] },
   { id: 'radiator', name: '散热器', en: 'Radiator', role: '冷却', material: '铜 / 黄铜', description: '竖直的管片式散热器。没有水泵：热水从缸盖上升进上水箱，冷却后从下水箱流回缸体。', explode: [18, 6, 0], stage: [0.06, 0.14] },
   { id: 'hood', name: '发动机罩', en: 'Hood', role: '遮盖', material: '钢板', description: '中间一根铰链，两侧可以掀开。', explode: [0, 28, 0], stage: [0, 0.08] },
   { id: 'body', name: '车身', en: 'Touring Body', role: '载人', material: '钢板 / 木框', description: '五座敞篷旅行车身：前围、前后座椅，前座下面是 10 加仑的油箱，燃油靠重力流到化油器。', explode: [0, 30, 0], stage: [0.2, 0.3] },
@@ -287,7 +287,7 @@ export const carLevel = level({
     [[-WHEELBASE, AXLE_Y, -34], [-WHEELBASE, AXLE_Y, 34]],
   ],
   steps: STEPS,
-  camera: { target: [-52, 26, 0], offset: [120, 110, 260], orthoDistance: 950, exploded: { target: [-50, 40, 0], scale: 1.6 } },
+  camera: { target: [-52, 26, 0], offset: [120, 110, 260], orthoDistance: 950, exploded: { target: [-50, 40, 0], scale: 1.6 }, deep: { target: [-20, 25, 100], scale: 2.35 } },
   Model: ModelT,
 });
 

@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { lineage, MACHINES, machineById, useMachine } from '../machines';
-import { selectMachine, useStudio, type ViewMode } from '../state';
+import { clearEdits, editOf, partEdits, selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function TitleColumn() {
   const machine = useMachine();
-  const { step, explode, running, section, labels, view, hiddenLines, projection, set } = useStudio();
+  const { step, explode, running, section, labels, view, hiddenLines, projection, moveMode, deep, set } = useStudio();
   const drawingMode = view === 'drawing';
   const { Controls, Toggles } = machine;
   const chain = lineage(machine);
@@ -83,7 +83,20 @@ export function TitleColumn() {
               <button type="button" className={projection ? 'is-on' : ''} onClick={() => set({ projection: !projection })} title="长对正 · 高平齐 · 宽相等">投影</button>
             </>
           ) : (
-            <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
+            <>
+              <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
+              <button type="button" className={moveMode ? 'is-on' : ''} onClick={() => set({ moveMode: !moveMode })} title="拖动零件挪到别处（视角暂停转动）">挪动</button>
+              {machine.children && (
+                <button
+                  type="button"
+                  className={deep ? 'is-on' : ''}
+                  onClick={() => set(deep ? { deep: false } : { deep: true, explode: 1, localExplode: null })}
+                  title="整个拆开，并把每个子组件拉到旁边再拆开"
+                >
+                  全部展开
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -103,7 +116,15 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
         ))}
       </div>
       <span className="meta-sep" />
-      <button type="button" onClick={() => set({ view, focus: null, viewNonce: viewNonce + 1, explode: 0, selected: null, localExplode: null, section: false, step: 0 })}>复位</button>
+      <button
+        type="button"
+        onClick={() => {
+          clearEdits();
+          set({ view, focus: null, viewNonce: viewNonce + 1, explode: 0, selected: null, localExplode: null, section: false, step: 0, deep: false });
+        }}
+      >
+        复位
+      </button>
       <button type="button" disabled={busy} onClick={() => onExport('plate')} title="A4 横版爆炸图：编号气泡、明细表、标题栏">图版 ↓</button>
       <button type="button" disabled={busy} onClick={() => onExport('video')} title="录制整机 → 拆开 → 合拢（WebM）" className={recording !== null ? 'is-recording' : ''}>
         {recording !== null ? `录制中 ${recording.toFixed(0)}s` : '动画 ●'}
@@ -113,9 +134,37 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
   );
 }
 
+/** Size slider for the selected part, plus a button to undo its moves and resizing. */
+function PartSize({ id }: { id: string }) {
+  const nonce = useStudio((s) => s.editNonce);
+  const [scale, setScale] = useState(() => partEdits.get(id)?.scale ?? 1);
+  useEffect(() => setScale(partEdits.get(id)?.scale ?? 1), [id, nonce]);
+  return (
+    <div className="part-size">
+      <label className="slider">
+        <span>大小</span>
+        <input
+          type="range"
+          min={0.5}
+          max={3}
+          step={0.05}
+          value={scale}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            editOf(id).scale = value;
+            setScale(value);
+          }}
+        />
+        <output>{scale.toFixed(2)}×</output>
+      </label>
+      <button type="button" className="caption-action" onClick={() => clearEdits(id)}>还原</button>
+    </div>
+  );
+}
+
 export function PartsLegend() {
   const machine = useMachine();
-  const { selected, hovered, localExplode, set } = useStudio();
+  const { selected, hovered, localExplode, view, set } = useStudio();
   const focus = selected ?? hovered;
   const part = focus ? machine.parts.find((p) => p.id === focus) : undefined;
   const child = part && machine.children?.[part.id];
@@ -137,6 +186,7 @@ export function PartsLegend() {
             {selected && <button type="button" className="caption-close" onClick={() => set({ selected: null })} aria-label="取消选择">×</button>}
           </div>
           <p className="caption-body">{part.description}</p>
+          {selected && view !== 'drawing' && <PartSize id={selected} />}
           {child && (
             <button type="button" className="caption-open" onClick={() => selectMachine(child)}>
               拆开此组件：{machineById(child).summary} <span aria-hidden="true">↘</span>
