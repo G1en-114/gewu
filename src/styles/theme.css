@@ -147,6 +147,10 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .gauges b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .gauge-bar { height: 1px; background: var(--hair); position: relative; }
 .gauge-bar i { position: absolute; left: 0; top: -1px; height: 3px; background: var(--rust); transition: width 0.15s linear; }
+.strokes { display: flex; align-items: center; gap: 6px; padding-left: 50px; font-size: 12px; letter-spacing: 0.12em; color: var(--ink-3); }
+.strokes span { padding: 2px 7px; border: 1px solid var(--hair); transition: color 0.15s, border-color 0.15s, background 0.15s; }
+.strokes span.is-on { color: var(--paper-hi); background: var(--rust); border-color: var(--rust); }
+.strokes b { margin-left: auto; font: 600 13px var(--serif-en); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 .toggles { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; padding-left: 50px; }
 .toggles button { white-space: nowrap; }
 .toggles--machine { margin-top: 0; }

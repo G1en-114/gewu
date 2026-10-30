@@ -9,6 +9,7 @@ import { useStudio } from './state';
 import { bridge, exportPlate, recordTeardown } from './export';
 import { DrawingRig } from './drawing/DrawingRig';
 import { DrawingSheet } from './drawing/Sheet';
+import './styles/fonts.css';
 import './styles/theme.css';
 
 function download(name: string, href: string) {

@@ -113,7 +113,9 @@ export function InkRenderer({ lineWidth = 1.15, hatch = 1 }: { lineWidth?: numbe
     uniforms.uDrawing.value = layout ? 1 : 0;
     uniforms.uHidden.value = anyHidden ? 1 : 0;
     uniforms.uHatch.value = layout ? 0 : hatch;
-    uniforms.uLine.value = lineWidth * Math.max(1, dpr * 0.85) * (layout ? 1.2 : 1);
+    // Small screens (phones) get finer drawing lines so the views do not clog up.
+    const drawingLine = layout ? THREE.MathUtils.clamp(Math.min(size.width, size.height * 1.7) / 1300, 0.7, 1.2) : 1;
+    uniforms.uLine.value = lineWidth * Math.max(1, dpr * 0.85) * drawingLine;
 
     const background = scene.background;
     scene.background = null;

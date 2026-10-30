@@ -127,3 +127,57 @@ export function squareThread(key: string, r0: number, r1: number, pitch: number,
     return crease(g.toNonIndexed());
   });
 }
+
+/** Spur gear outline (simple trapezoid teeth) with a centre bore, in the xy plane. */
+export function gearShape(teeth: number, pitchR: number, addendum: number, bore: number) {
+  const s = new THREE.Shape();
+  const rOut = pitchR + addendum;
+  const rRoot = pitchR - addendum * 1.25;
+  const step = (Math.PI * 2) / teeth;
+  for (let i = 0; i < teeth; i += 1) {
+    const a = i * step;
+    const pts: Array<[number, number]> = [
+      [rRoot, a - step * 0.3], [rOut, a - step * 0.16], [rOut, a + step * 0.16], [rRoot, a + step * 0.3],
+    ];
+    pts.forEach(([r, t], k) => {
+      const x = Math.cos(t) * r;
+      const y = Math.sin(t) * r;
+      if (i === 0 && k === 0) s.moveTo(x, y);
+      else s.lineTo(x, y);
+    });
+  }
+  s.closePath();
+  const hole = new THREE.Path();
+  hole.absarc(0, 0, bore, 0, Math.PI * 2, true);
+  s.holes.push(hole);
+  return s;
+}
+
+/** Helical coil spring along local +Y from 0 to length (scale y to compress it). */
+export function coil(key: string, radius: number, wire: number, length: number, turns: number) {
+  return memo(`coil:${key}`, () => {
+    const steps = Math.round(turns * 24);
+    const points = Array.from({ length: steps + 1 }, (_, i) => {
+      const t = i / steps;
+      const a = t * turns * Math.PI * 2;
+      return new THREE.Vector3(Math.cos(a) * radius, t * length, Math.sin(a) * radius);
+    });
+    return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), steps, wire, 6, false);
+  });
+}
+
+/** Shape builder for extrude(): a closed polygon with optional round holes [x, y, r]. */
+export function outline(points: Array<[number, number]>, holes: Array<[number, number, number]> = []) {
+  return () => {
+    const s = new THREE.Shape();
+    s.moveTo(...points[0]);
+    points.slice(1).forEach((p) => s.lineTo(...p));
+    s.closePath();
+    for (const [x, y, r] of holes) {
+      const h = new THREE.Path();
+      h.absarc(x, y, r, 0, Math.PI * 2, true);
+      s.holes.push(h);
+    }
+    return s;
+  };
+}

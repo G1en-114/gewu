@@ -4,10 +4,15 @@
 
 运行：`npm install && npm run dev`；构建：`npm run build`。计划与进度见 `docs/PLAN.md`。
 
+字体是本地子集（`public/fonts`），新增中文文字后运行 `python scripts/subset-fonts.py <源字体目录>` 重新生成。
+
 ## 机器
 
 - **螺旋千斤顶**（`src/machines/jack`）：7 个回转体零件，方牙螺纹，螺旋升降；全剖时实心杆件按不剖处理。
+- **机用虎钳**（`src/machines/vise`）：8 种零件，螺杆转动、方块螺母带活动钳身移动。
 - **球阀**（`src/machines/valve`）：9 种零件，扳手转 90° 带动阀芯开关；全剖可见流道、密封圈与填料。
+- **齿轮油泵**（`src/machines/pump`）：8 种零件，一对齿轮轴啮合，填料与压紧螺母密封。
+- **四冲程汽油机**（`src/machines/ice`）：15 种零件，依 Joe Webster 的公开图纸（Webster Engine Works 4 Cycle Gas Engine，非营利用途可自由使用）按原尺寸（英寸）建模；曲柄连杆、2:1 正时齿轮、凸轮摇臂顶开排气门、自动进气门；左栏显示进气 / 压缩 / 做功 / 排气。
 - **卧式单缸蒸汽机**（`src/machines/engine`）：13 个零件，曲柄连杆、配汽机构、离心调速反馈。
 
 新增机器：在 `src/machines/<id>/` 提供 `MachineDef`（零件表、拆解时序、讲解步骤、镜头、包围盒、模型组件），并在 `src/machines/index.ts` 注册。
