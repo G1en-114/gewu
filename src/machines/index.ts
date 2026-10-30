@@ -16,6 +16,8 @@ export const MACHINES: MachineDef[] = [jack, vise, valve, pump, ice, engine, iph
 /** Every assembly, including subassemblies reached only by opening a part. */
 const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS];
 
+export const allMachines = () => ALL;
+
 export function machineById(id: string): MachineDef {
   return ALL.find((m) => m.id === id) ?? MACHINES[0];
 }

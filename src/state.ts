@@ -29,6 +29,8 @@ export interface StudioState {
   /** Parts put out of sight, and the one part shown on its own. */
   hidden: string[];
   solo: string | null;
+  /** Bumped (with the part) to swing the camera onto one part. */
+  aim: { id: string; nonce: number } | null;
   /** Bumped when a part's size or position is edited from the UI. */
   editNonce: number;
   set: (patch: Partial<Omit<StudioState, 'set'>>) => void;
@@ -53,6 +55,7 @@ export const useStudio = create<StudioState>((set) => ({
   deep: false,
   hidden: [],
   solo: null,
+  aim: null,
   editNonce: 0,
   set: (patch) => set(patch),
 }));
@@ -111,6 +114,12 @@ export function restoreAll(first: { state: { running: boolean; select: string | 
     labels: typeof window === 'undefined' || window.innerWidth >= 700, hiddenLines: true, projection: true, editNonce: s.editNonce + 1, hidden: [], solo: null,
   }));
   document.body.style.cursor = '';
+}
+
+/** Point the camera at one part of the current assembly. */
+export function aimAt(id: string) {
+  const { aim } = useStudio.getState();
+  useStudio.setState({ aim: { id, nonce: (aim?.nonce ?? 0) + 1 } });
 }
 
 /** Whether a part is drawn at all (hidden, or another part shown on its own). */

@@ -161,7 +161,9 @@ export function CameraRig({ shift }: { shift: number }) {
   const view = useStudio((s) => s.view);
   const nonce = useStudio((s) => s.viewNonce);
   const focus = useStudio((s) => s.focus);
-  const tween = useRef<{ t: number; fromPos: THREE.Vector3; fromTarget: THREE.Vector3; fromFov: number } | null>(null);
+  const tween = useRef<{ t: number; fromPos: THREE.Vector3; fromTarget: THREE.Vector3; fromFov: number; to?: { pos: THREE.Vector3; target: THREE.Vector3 } } | null>(null);
+  const aim = useStudio((s) => s.aim);
+  const { scene } = useThree();
   /** Explode-driven framing already applied, so only the change is added each frame. */
   const applied = useRef({ shift: new THREE.Vector3(), scale: 1 });
 
@@ -173,6 +175,28 @@ export function CameraRig({ shift }: { shift: number }) {
       fromFov: camera.fov,
     };
   }, [view, nonce, focus, machine, camera, controls]);
+
+  // Swing onto one part: keep the viewing direction, frame its bounding box.
+  useEffect(() => {
+    if (!aim || !controls) return;
+    const object = scene.getObjectByName(`part-${aim.id}`);
+    if (!object) return;
+    const box = new THREE.Box3().setFromObject(object);
+    if (box.isEmpty()) return;
+    const target = box.getCenter(new THREE.Vector3());
+    const radius = Math.max(0.6, box.getSize(new THREE.Vector3()).length() / 2);
+    const dir = camera.position.clone().sub(controls.target).normalize();
+    // Never closer than 40 % of the machine's own viewing distance, so the part keeps its context.
+    const nearest = Math.max(3.2, v3(machine.camera.offset).length() * 0.4);
+    const distance = Math.min(150, Math.max(nearest, radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.15));
+    tween.current = {
+      t: 0,
+      fromPos: camera.position.clone(),
+      fromTarget: controls.target.clone(),
+      fromFov: camera.fov,
+      to: { pos: target.clone().addScaledVector(dir, distance), target },
+    };
+  }, [aim, scene, camera, controls, machine]);
 
   useEffect(() => {
     if (shift) camera.setViewOffset(size.width, size.height, -shift, 0, size.width, size.height);
@@ -217,8 +241,8 @@ export function CameraRig({ shift }: { shift: number }) {
     const visibleWidth = Math.max(0.5, (size.width - shift * 2) / size.height);
     const fit = Math.max(1, 0.95 / visibleWidth);
     const close = view === 'perspective' && focus ? foci?.[focus] : null;
-    const toTarget = v3(close ? close.target : target);
-    const toPos = toTarget.clone().addScaledVector(preset.offset, fit * (close ? close.scale : 1));
+    const toTarget = tw.to ? tw.to.target : v3(close ? close.target : target);
+    const toPos = tw.to ? tw.to.pos : toTarget.clone().addScaledVector(preset.offset, fit * (close ? close.scale : 1));
     camera.position.lerpVectors(tw.fromPos, toPos, e);
     camera.fov = THREE.MathUtils.lerp(tw.fromFov, preset.fov, e);
     camera.updateProjectionMatrix();
@@ -231,7 +255,8 @@ export function CameraRig({ shift }: { shift: number }) {
     if (tw.t >= 1) {
       tween.current = null;
       // The preset framing is the un-exploded one; re-apply the explode framing from scratch.
-      applied.current = { shift: new THREE.Vector3(), scale: 1 };
+      // (Aiming at a part already accounts for where the parts are.)
+      if (!tw.to) applied.current = { shift: new THREE.Vector3(), scale: 1 };
     }
   });
   return null;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { lineage, MACHINES, machineById, useMachine } from '../machines';
+import { allMachines, lineage, MACHINES, machineById, useMachine } from '../machines';
 import type { MachineDef } from '../machines/types';
-import { clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
+import { aimAt, clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -32,6 +32,8 @@ export function TitleColumn() {
         <p className="mast-zh">工程制图 · 交互拆解</p>
         <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(root) + 1)}{chain.length > 1 ? `-${chain.length - 1}` : ''}</span><i /></div>
       </header>
+
+      <PartSearch />
 
       <nav className="machines" aria-label="选择机器">
         {MACHINES.map((m) => (
@@ -145,6 +147,83 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
   );
 }
 
+/** Find a part anywhere, in any machine or subassembly, and go straight to it. */
+function PartSearch() {
+  const [query, setQuery] = useState('');
+  const [active, setActive] = useState(0);
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const found: Array<{ machine: MachineDef; part: MachineDef['parts'][number] }> = [];
+    for (const machine of allMachines()) {
+      for (const part of machine.parts) {
+        if (part.name.toLowerCase().includes(q) || part.en.toLowerCase().includes(q) || machine.name.includes(q)) found.push({ machine, part });
+      }
+    }
+    return found.slice(0, 8);
+  }, [query]);
+  useEffect(() => setActive(0), [query]);
+
+  // Global keys: "/" to search, Esc to let go of the selection, F to aim at it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = (e.target as HTMLElement).tagName === 'INPUT';
+      if (e.key === '/' && !typing) {
+        e.preventDefault();
+        document.getElementById('part-search')?.focus();
+      } else if (e.key === 'Escape' && !typing) {
+        useStudio.getState().set({ selected: null });
+      } else if ((e.key === 'f' || e.key === 'F') && !typing) {
+        const { selected } = useStudio.getState();
+        if (selected) aimAt(selected);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const go = (hit: (typeof results)[number]) => {
+    const switching = useStudio.getState().machineId !== hit.machine.id;
+    selectMachine(hit.machine.id);
+    useStudio.getState().set({ selected: hit.part.id });
+    // Let a newly opened assembly put itself together before swinging the camera in.
+    window.setTimeout(() => aimAt(hit.part.id), switching ? 2200 : 0);
+    setQuery('');
+    (document.activeElement as HTMLElement | null)?.blur();
+  };
+
+  return (
+    <div className="search">
+      <input
+        id="part-search"
+        type="search"
+        placeholder="搜索零件，如 活塞环、喷注器…（按 / ）"
+        value={query}
+        autoComplete="off"
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(results.length - 1, a + 1)); }
+          if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(0, a - 1)); }
+          if (e.key === 'Enter' && results[active]) go(results[active]);
+          if (e.key === 'Escape') { setQuery(''); e.currentTarget.blur(); }
+        }}
+      />
+      {results.length > 0 && (
+        <ul className="search-results" role="listbox">
+          {results.map((hit, i) => (
+            <li key={`${hit.machine.id}:${hit.part.id}`} role="option" aria-selected={i === active}>
+              <button type="button" className={i === active ? 'is-active' : ''} onMouseEnter={() => setActive(i)} onClick={() => go(hit)}>
+                <span className="search-name">{hit.part.name}</span>
+                <span className="search-path">{lineage(hit.machine).map((m) => m.name).join(' › ')}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** The teardown as discrete steps: each step ends where some part (or set of screws) is off. */
 function teardownStops(machine: MachineDef) {
   const stops = new Map<number, { at: number; ids: string[]; labels: string[] }>();
@@ -175,7 +254,8 @@ function Stepper({ machine, explode }: { machine: MachineDef; explode: number })
   };
   const current = done > 0 ? stops[done - 1] : null;
   return (
-    <div className="stepper">
+    <div className="stepper" title="也可以用键盘 ← →">
+      <StepKeys onPrev={() => done > 0 && go(done - 1)} onNext={() => done < stops.length && go(done + 1)} />
       <button type="button" disabled={done === 0} onClick={() => go(done - 1)} aria-label="上一步">‹</button>
       <p>
         <span className="stepper-count">{pad(done)} / {pad(stops.length)}</span>
@@ -184,6 +264,20 @@ function Stepper({ machine, explode }: { machine: MachineDef; explode: number })
       <button type="button" disabled={done === stops.length} onClick={() => go(done + 1)} aria-label="下一步">›</button>
     </div>
   );
+}
+
+/** Left and right arrow keys step through the teardown (when not typing). */
+function StepKeys({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight') onNext();
+      if (e.key === 'ArrowLeft') onPrev();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onPrev, onNext]);
+  return null;
 }
 
 /** Size slider for the selected part, plus a button to undo its moves and resizing. */
@@ -243,6 +337,7 @@ export function PartsLegend() {
             <div className="caption-tools">
               <button type="button" className="caption-action" onClick={() => set({ hidden: [...hidden, selected], selected: null, solo: solo === selected ? null : solo })}>隐藏</button>
               <button type="button" className="caption-action" onClick={() => set({ solo: solo === selected ? null : selected })}>{solo === selected ? '显示全部' : '只看它'}</button>
+              <button type="button" className="caption-action" onClick={() => aimAt(selected)} title="镜头对准这个零件（键盘 F）">对准</button>
             </div>
           )}
           {child && (
