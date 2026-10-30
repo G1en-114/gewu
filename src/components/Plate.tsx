@@ -115,7 +115,7 @@ function Gauges() {
 
 const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['elevation', '立面'], ['plan', '平面']];
 
-export function PlateMeta({ onExport }: { onExport: (kind: 'png' | 'json') => void }) {
+export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'plate' | 'video' | 'json') => void; busy: boolean; recording: number | null }) {
   const { view, viewNonce, set } = useStudio();
   return (
     <nav className="plate-meta" aria-label="视图">
@@ -126,8 +126,11 @@ export function PlateMeta({ onExport }: { onExport: (kind: 'png' | 'json') => vo
       </div>
       <span className="meta-sep" />
       <button type="button" onClick={() => set({ view, focus: null, viewNonce: viewNonce + 1, explode: 0, selected: null, localExplode: null, section: false, step: 0 })}>复位</button>
-      <button type="button" onClick={() => onExport('png')}>PNG ↓</button>
-      <button type="button" onClick={() => onExport('json')}>JSON ↓</button>
+      <button type="button" disabled={busy} onClick={() => onExport('plate')} title="A4 横版爆炸图：编号气泡、明细表、标题栏">图版 ↓</button>
+      <button type="button" disabled={busy} onClick={() => onExport('video')} title="录制整机 → 拆开 → 合拢（WebM）" className={recording !== null ? 'is-recording' : ''}>
+        {recording !== null ? `录制中 ${recording.toFixed(0)}s` : '动画 ●'}
+      </button>
+      <button type="button" disabled={busy} onClick={() => onExport('json')}>JSON ↓</button>
     </nav>
   );
 }

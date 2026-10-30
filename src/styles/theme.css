@@ -197,6 +197,8 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .plate-meta button.is-on { color: var(--ink); }
 .plate-meta button.is-on::after { content: ""; position: absolute; left: 0; right: 0.18em; bottom: -3px; height: 1px; background: var(--rust); }
 .meta-sep { width: 1px; height: 12px; background: var(--hair-strong); }
+.plate-meta button:disabled { cursor: progress; opacity: 0.55; }
+.plate-meta button.is-recording { color: var(--rust); opacity: 1; }
 
 /* ── Bottom-right legend ──────────────────────────── */
 

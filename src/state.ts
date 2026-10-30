@@ -48,6 +48,8 @@ export const useStudio = create<StudioState>((set) => ({
 export const motion = {
   /** Starts apart so the machine assembles itself on load. */
   explode: 1,
+  /** Slider units per second; slowed down while recording the teardown. */
+  explodeRate: 0.55,
   /** Local explode: which part, and its 0–1 progress. */
   localPart: null as MachinePartId | null,
   local: 0,

@@ -190,7 +190,7 @@ export function MotionDriver() {
     const { explode, running, load, governor, section, localExplode } = useStudio.getState();
     // Constant-rate easing keeps the staged teardown evenly paced.
     const diff = explode - motion.explode;
-    motion.explode += Math.sign(diff) * Math.min(Math.abs(diff), dt * 0.55);
+    motion.explode += Math.sign(diff) * Math.min(Math.abs(diff), dt * motion.explodeRate);
 
     // Local explode: fold the previous part away before opening the next one.
     if (motion.localPart !== localExplode) {
