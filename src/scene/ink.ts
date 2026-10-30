@@ -250,7 +250,7 @@ export const compositeFragment = /* glsl */ `
       // and 45° section lining on cut faces, alternating direction by part.
       col = mix(uFace, mix(uAccent, uFace, 0.8), selHere);
       if (cut) {
-        float index = floor(fract(s.a + 0.5) * 32.0 + 0.5);
+        float index = floor(fract(s.a + 0.5) * 64.0 + 0.5);
         float dir = mod(index, 2.0) < 0.5 ? 1.0 : -1.0;
         float spacing = (6.0 + mod(index, 3.0)) * max(1.0, uLine * 0.8);
         float h = hatchLines(gl_FragCoord.xy, dir, spacing);

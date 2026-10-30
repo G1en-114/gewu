@@ -136,7 +136,7 @@ export function PartsLegend() {
           </div>
         </div>
       )}
-      <table className="parts">
+      <table className={`parts${machine.parts.length > 15 ? ' is-long' : ''}`}>
         <caption>零件明细 · PARTS</caption>
         <tbody>
           {machine.parts.map((item) => (

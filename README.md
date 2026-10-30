@@ -14,6 +14,7 @@
 - **齿轮油泵**（`src/machines/pump`）：8 种零件，一对齿轮轴啮合，填料与压紧螺母密封。
 - **四冲程汽油机**（`src/machines/ice`）：15 种零件，依 Joe Webster 的公开图纸（Webster Engine Works 4 Cycle Gas Engine，非营利用途可自由使用）按原尺寸（英寸）建模；曲柄连杆、2:1 正时齿轮、凸轮摇臂顶开排气门、自动进气门；左栏显示进气 / 压缩 / 做功 / 排气。
 - **卧式单缸蒸汽机**（`src/machines/engine`）：13 个零件，曲柄连杆、配汽机构、离心调速反馈。
+- **智能手机**（`src/machines/iphone`）：iPhone 15，21 种零件按 Apple 维修手册爆炸图编号，附各组螺钉；外形依 Apple 公开的配件尺寸图，内部布局按维修手册的内部视图、爆炸图和螺钉图估读（毫米）。拆解顺序照维修手册：卡托 → 后盖 → 护盖 → 摄像头 → 电池 → … → 屏幕。不含 Apple 标志。
 
 新增机器：在 `src/machines/<id>/` 提供 `MachineDef`（零件表、拆解时序、讲解步骤、镜头、包围盒、模型组件），并在 `src/machines/index.ts` 注册。
 

@@ -109,7 +109,7 @@ export function InkRenderer({ lineWidth = 1.15, hatch = 1 }: { lineWidth?: numbe
     uniforms.uNear.value = cam.near;
     uniforms.uFar.value = cam.far;
     uniforms.uOrtho.value = (cam as THREE.OrthographicCamera).isOrthographicCamera ? 1 : 0;
-    uniforms.uSelId.value = selected ? (partDef(selected)?.index ?? -32) / 32 : -1;
+    uniforms.uSelId.value = selected ? (partDef(selected)?.index ?? -64) / 64 : -1;
     uniforms.uDrawing.value = layout ? 1 : 0;
     uniforms.uHidden.value = anyHidden ? 1 : 0;
     uniforms.uHatch.value = layout ? 0 : hatch;

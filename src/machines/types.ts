@@ -4,7 +4,7 @@ export type Vec3 = [number, number, number];
 
 export interface PartDef {
   id: string;
-  /** 1-based drawing index; also the ink part id used by the line renderer (max 15). */
+  /** 1-based drawing index; also the ink part id used by the line renderer (max 31). */
   index: number;
   name: string;
   en: string;

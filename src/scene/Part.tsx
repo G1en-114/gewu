@@ -16,10 +16,10 @@ interface PartMaterials {
 const PartContext = createContext<PartMaterials | null>(null);
 
 export function Part({ id, tone = 1, children }: { id: string; tone?: number; children: ReactNode }) {
-  const index = partDef(id)?.index ?? 15;
+  const index = partDef(id)?.index ?? 31;
   const group = useRef<THREE.Group>(null);
   const materials = useMemo<PartMaterials>(() => {
-    const partId = index / 32;
+    const partId = index / 64;
     return {
       solid: createInkMaterial({ partId, tone }),
       clipped: createInkMaterial({ partId, tone, clip: [SECTION_PLANE] }),

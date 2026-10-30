@@ -247,6 +247,12 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .parts td.en { text-align: right; font: italic 500 13px var(--serif-en); color: var(--ink-3); }
 .parts tr.is-hovered td { color: var(--ink); }
 .parts tr.is-selected td { color: var(--rust); }
+/* Long lists fold into two columns. */
+.parts.is-long tbody { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; }
+.parts.is-long tr { display: flex; }
+.parts.is-long td { padding: 2.5px 0; }
+.parts.is-long td.num { flex: none; }
+.parts.is-long td.en { display: none; }
 .title-block { display: flex; justify-content: space-between; margin-top: 7px; font-size: 10.5px; letter-spacing: 0.1em; color: var(--ink-3); }
 
 .stage-hint {
