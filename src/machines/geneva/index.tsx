@@ -221,7 +221,7 @@ export const geneva: MachineDef = level({
   guides: [{ stage: 'wheel', origin: [C, 0, 0] }],
   centreLines: [[[0, 0, -15], [0, 0, 20], LOCK + 4], [[C, 0, -15], [C, 0, 30], R_G + 4]],
   steps: STEPS,
-  camera: { target: [C / 2 + 8, 0, 0], offset: [70, 130, 420], orthoDistance: 1000, exploded: { target: [C / 2 + 20, 0, 20], scale: 1.3 } },
+  camera: { target: [C / 2 + 8, 0, 0], offset: [260, 120, 340], orthoDistance: 1000, exploded: { target: [C / 2 + 20, 0, 20], scale: 1.3 } },
   Model: Geneva,
   Driver: GenevaDriver,
   Controls: GenevaControls,
