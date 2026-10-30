@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { allMachines, GROUPS, lineage, MACHINES, machineById, useMachine } from '../machines';
 import type { MachineDef } from '../machines/types';
+import { useCatalogue } from './Catalogue';
 import { aimAt, clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -127,6 +128,8 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
   const machine = useMachine();
   return (
     <nav className="plate-meta" aria-label="视图">
+      <button type="button" className="meta-catalogue" onClick={() => useCatalogue.getState().set(true)} title="全部机器一览">目录</button>
+      <span className="meta-sep" />
       <div className="views">
         {VIEWS.map(([id, label]) => (
           <button key={id} type="button" className={view === id ? 'is-on' : ''} onClick={() => set({ view: id, focus: null, viewNonce: viewNonce + 1 })}>{label}</button>
