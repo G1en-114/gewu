@@ -2,6 +2,7 @@ import { useStudio } from '../state';
 import { engine } from './engine';
 import { ice } from './ice';
 import { BICYCLE_LEVELS, bicycle } from './bicycle';
+import { elevator } from './elevator';
 import { EXCAVATOR_LEVELS, excavator } from './excavator';
 import { gearbox } from './gearbox';
 import { iphone } from './iphone';
@@ -29,7 +30,7 @@ import type { MachineDef } from './types';
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen, micrometer] },
   { name: '动力', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, wind] },
-  { name: '整机', machines: [iphone, watch, piano, rotor, bicycle, excavator, modelT, saturnV] },
+  { name: '整机', machines: [iphone, watch, piano, rotor, elevator, bicycle, excavator, modelT, saturnV] },
 ];
 
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
