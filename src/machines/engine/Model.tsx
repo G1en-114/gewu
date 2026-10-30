@@ -1,60 +1,21 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ENGINE } from '../data/machine';
-import { motion } from '../state';
-import { bedSection, box, cyl, extrude, hexNut, lathe, sphere, stud, webShape } from './geometry';
-import { M, Part } from './Part';
-import { BOLT_SETS, stageProgress, type BoltSetId } from './explode';
+import { bedSection, box, cyl, extrude, hexNut, lathe, sphere, webShape } from '../../scene/geometry';
+import { M, Part } from '../../scene/Part';
+import { ALONG_NEG_X, ALONG_X, ALONG_Z, Bolt, boltCircle, HALF_PI, placeBar } from '../../scene/parts';
+import { stageProgress } from '../../scene/explode';
+import { Callout } from '../../scene/Overlay';
+import type { Vec3 } from '../types';
+import { ENGINE } from './data';
 import {
   crossheadX, GOVERNOR, LEVER_PIVOT_Y, LEVER_YAW, leverAngle, leverOuterEnd, rockerPose, sleeveY,
   THROTTLE_ARM, THROTTLE_POS, throttleArmAngle, throttleArmTip, VALVE_GEAR,
 } from './kinematics';
-import { Callout } from './Overlay';
-
-type Vec3 = [number, number, number];
+import { engineMotion as motion } from './motion';
 
 const AX = ENGINE.axisY;
 const CX = ENGINE.crankX;
-const HALF_PI = Math.PI / 2;
-const ALONG_X: Vec3 = [0, 0, -HALF_PI];
-const ALONG_NEG_X: Vec3 = [0, 0, HALF_PI];
-const ALONG_Z: Vec3 = [HALF_PI, 0, 0];
-
-/** Stretch a unit-length bar (along local x) between two points in a z plane. */
-function placeBar(mesh: THREE.Object3D | null, ax: number, ay: number, bx: number, by: number, z: number) {
-  if (!mesh) return;
-  mesh.position.set((ax + bx) / 2, (ay + by) / 2, z);
-  mesh.rotation.set(0, 0, Math.atan2(by - ay, bx - ax));
-  mesh.scale.set(Math.hypot(bx - ax, by - ay), 1, 1);
-}
-
-/**
- * Hex nut on a stud, pointing along its local +y. Bolts in a removable set
- * back out along that axis during the staged explode.
- */
-function Bolt({ p, axis = 'y', flip = false, clip = false, set }: { p: Vec3; axis?: 'x' | 'y' | 'z'; flip?: boolean; clip?: boolean; set?: BoltSetId }) {
-  const rotation: Vec3 = axis === 'x' ? (flip ? ALONG_NEG_X : ALONG_X) : axis === 'z' ? (flip ? [-HALF_PI, 0, 0] : ALONG_Z) : flip ? [Math.PI, 0, 0] : [0, 0, 0];
-  const out = useRef<THREE.Group>(null);
-  useFrame(() => {
-    if (set && out.current) out.current.position.y = BOLT_SETS[set].distance * stageProgress(set);
-  });
-  return (
-    <group position={p} rotation={rotation}>
-      <group ref={out}>
-        <M geo={hexNut()} p={[0, 0.035, 0]} clip={clip} />
-        <M geo={stud()} p={[0, 0.095, 0]} clip={clip} />
-      </group>
-    </group>
-  );
-}
-
-function boltCircle(count: number, radius: number, offset = Math.PI / count) {
-  return Array.from({ length: count }, (_, i) => {
-    const a = offset + (i * Math.PI * 2) / count;
-    return [Math.cos(a) * radius, Math.sin(a) * radius] as const;
-  });
-}
 
 function Plinth() {
   return (
@@ -342,7 +303,7 @@ function Governor() {
   const gz = ENGINE.governor[2];
   useFrame(() => {
     // Belt and throttle rod only make sense while the governor sits on its column.
-    if (drive.current) drive.current.visible = motion.explode < 0.03;
+    if (drive.current) drive.current.visible = stageProgress('governor') + stageProgress('valve-chest') < 0.01;
     const phi = motion.phi;
     const ys = sleeveY(phi);
     if (head.current) head.current.rotation.y = motion.spin;

@@ -1,35 +1,22 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { motion } from '../state';
-import { MACHINE_PARTS, STUDY_STEPS, partById } from '../data/machine';
-import { useStudio } from '../state';
-import type { ViewMode } from '../types/machine';
-import { parseDrawingPlaceholder, parsePrompt } from '../ai/parse';
+import { useEffect } from 'react';
+import { MACHINES, useMachine } from '../machines';
+import { selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function TitleColumn() {
-  const { step, explode, running, section, load, governor, labels, set } = useStudio();
-  const [input, setInput] = useState('');
-  const [notice, setNotice] = useState('');
-  const file = useRef<HTMLInputElement>(null);
+  const machine = useMachine();
+  const { step, explode, running, section, labels, set } = useStudio();
+  const { Controls, Toggles } = machine;
 
   const goStep = (index: number) => {
-    const { state } = STUDY_STEPS[index];
+    const { state, apply } = machine.steps[index];
     const { viewNonce } = useStudio.getState();
-    set({ localExplode: null, step: index, explode: state.explode, section: state.section, running: state.running, load: state.load, governor: state.governor, selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1 });
-  };
-  const submit = () => {
-    const prompt = input.trim();
-    if (!prompt) return;
-    const parsed = parsePrompt(prompt, { includeInputMetadata: true });
-    setNotice(`已解析 · ${parsed.title} · 本地演示适配器`);
-  };
-  const upload = (event: ChangeEvent<HTMLInputElement>) => {
-    const picked = event.target.files?.[0];
-    if (!picked) return;
-    const parsed = parseDrawingPlaceholder({ fileName: picked.name, mimeType: picked.type });
-    setNotice(`已载入图纸 · ${parsed.title}`);
-    event.target.value = '';
+    apply?.();
+    set({
+      localExplode: null, step: index, explode: state.explode, section: state.section, running: state.running,
+      selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1,
+    });
   };
 
   return (
@@ -38,17 +25,25 @@ export function TitleColumn() {
         <h1 className="mast-title">格物</h1>
         <div className="mast-rule" />
         <p className="mast-en">MECHANISM STUDIO</p>
-        <p className="mast-zh">机械原理 · 交互拆解</p>
-        <div className="fig-rule"><span>FIG. 01</span><i /></div>
+        <p className="mast-zh">工程制图 · 交互拆解</p>
+        <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(machine) + 1)}</span><i /></div>
       </header>
 
+      <nav className="machines" aria-label="选择机器">
+        {MACHINES.map((m) => (
+          <button key={m.id} type="button" className={m.id === machine.id ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
+            {m.name}
+          </button>
+        ))}
+      </nav>
+
       <div className="subject">
-        <h2>卧式单缸蒸汽机</h2>
-        <p>Horizontal Mill Engine · c. 1850</p>
+        <h2>{machine.name}</h2>
+        <p>{machine.en} · {machine.subtitle}</p>
       </div>
 
       <ol className="steps">
-        {STUDY_STEPS.map((item, index) => (
+        {machine.steps.map((item, index) => (
           <li key={item.title} className={index === step ? 'is-active' : ''}>
             <button type="button" onClick={() => goStep(index)}>
               <span className="step-num">{pad(index + 1)}</span>
@@ -66,54 +61,19 @@ export function TitleColumn() {
           <input type="range" min={0} max={1} step={0.01} value={explode} onChange={(e) => set({ explode: Number(e.target.value) })} />
           <output>{Math.round(explode * 100)}%</output>
         </label>
-        <label className="slider">
-          <span>负载</span>
-          <input type="range" min={0} max={1} step={0.01} value={load} onChange={(e) => set({ load: Number(e.target.value), running: true })} />
-          <output>{Math.round(load * 100)}%</output>
-        </label>
-        <Gauges />
+        {Controls && <Controls />}
         <div className="toggles">
           <button type="button" className={running ? 'is-on' : ''} onClick={() => set({ running: !running })}>{running ? '暂停' : '运转'}</button>
-          <button type="button" className={governor ? 'is-on' : ''} onClick={() => set({ governor: !governor, running: true })}>调速器</button>
+          {Toggles && <Toggles />}
           <button type="button" className={section ? 'is-on' : ''} onClick={() => set({ section: !section })}>剖视</button>
           <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
         </div>
       </div>
-
-      <div className="prompt">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
-          placeholder="描述一个机构，例如：带离心调速器的卧式蒸汽机"
-          aria-label="描述一个机构"
-        />
-        <button type="button" onClick={submit} aria-label="解析描述">↗</button>
-        <button type="button" className="prompt-upload" onClick={() => file.current?.click()}>图纸</button>
-        <input ref={file} hidden type="file" accept="image/png,image/jpeg,application/pdf" onChange={upload} />
-      </div>
-      {notice && <p className="prompt-notice">{notice}</p>}
     </section>
   );
 }
 
-/** Live speed and throttle readout from the engine model. */
-function Gauges() {
-  const [reading, setReading] = useState({ rpm: 0, throttle: 0 });
-  useEffect(() => {
-    const id = window.setInterval(() => setReading({ rpm: motion.rpm, throttle: motion.throttle }), 150);
-    return () => window.clearInterval(id);
-  }, []);
-  return (
-    <div className="gauges" aria-live="off">
-      <span><b>{reading.rpm.toFixed(1)}</b> rpm</span>
-      <span className="gauge-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, (reading.rpm / 70) * 100)}%` }} /></span>
-      <span>节流阀 <b>{Math.round(reading.throttle * 100)}%</b></span>
-    </div>
-  );
-}
-
-const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['elevation', '立面'], ['plan', '平面']];
+const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['elevation', '主视'], ['plan', '俯视']];
 
 export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'plate' | 'video' | 'json') => void; busy: boolean; recording: number | null }) {
   const { view, viewNonce, set } = useStudio();
@@ -136,9 +96,10 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
 }
 
 export function PartsLegend() {
+  const machine = useMachine();
   const { selected, hovered, localExplode, set } = useStudio();
   const focus = selected ?? hovered;
-  const part = focus ? partById(focus) : null;
+  const part = focus ? machine.parts.find((p) => p.id === focus) : undefined;
   // A local explode follows the selection, and folds away when nothing is selected.
   useEffect(() => {
     const { localExplode: current } = useStudio.getState();
@@ -170,7 +131,7 @@ export function PartsLegend() {
       <table className="parts">
         <caption>零件明细 · PARTS</caption>
         <tbody>
-          {MACHINE_PARTS.map((item) => (
+          {machine.parts.map((item) => (
             <tr
               key={item.id}
               className={`${selected === item.id ? 'is-selected' : ''}${hovered === item.id ? ' is-hovered' : ''}`}
@@ -186,8 +147,8 @@ export function PartsLegend() {
         </tbody>
       </table>
       <div className="title-block">
-        <span>图号 GW-ME-001</span>
-        <span>比例 1 : 20</span>
+        <span>图号 {machine.drawingNo}</span>
+        <span>比例 {machine.scale}</span>
         <span>第 1 张 共 1 张</span>
       </div>
     </aside>

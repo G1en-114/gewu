@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { EndElevation, SideElevation } from './components/Elevation';
 import { PartsLegend, PlateMeta, TitleColumn } from './components/Plate';
-import { ENGINE, MACHINE_PARTS } from './data/machine';
-import { CameraRig, Engine, Guides, InkRenderer, MotionDriver } from './scene';
+import { currentMachine, useMachine } from './machines';
+import { CameraRig, Guides, InkRenderer, MotionDriver } from './scene';
 import { useStudio } from './state';
 import { bridge, exportPlate, recordTeardown } from './export';
 import './styles/theme.css';
@@ -18,8 +17,10 @@ function download(name: string, href: string) {
 }
 
 function exportJson() {
-  const url = URL.createObjectURL(new Blob([JSON.stringify({ engine: ENGINE, parts: MACHINE_PARTS }, null, 2)], { type: 'application/json' }));
-  download('gewu-mill-engine.json', url);
+  const m = currentMachine();
+  const data = { id: m.id, name: m.name, en: m.en, drawingNo: m.drawingNo, scale: m.scale, parts: m.parts, steps: m.steps.map(({ apply: _apply, ...step }) => step) };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  download(`gewu-${m.id}.json`, url);
   URL.revokeObjectURL(url);
 }
 
@@ -49,6 +50,8 @@ function useStageShift() {
 export default function App() {
   const shift = useStageShift();
   const clear = useStudio((s) => s.set);
+  const machine = useMachine();
+  const { Model, Driver, Backdrop } = machine;
   const [recording, setRecording] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const onExport = async (kind: 'plate' | 'video' | 'json') => {
@@ -66,8 +69,7 @@ export default function App() {
   return (
     <div className="studio">
       <div className="paper-drawings" aria-hidden="true">
-        <SideElevation className="drawing drawing--side" />
-        <EndElevation className="drawing drawing--end" />
+        {Backdrop && <Backdrop />}
       </div>
       <div className="stage">
         <Canvas
@@ -79,7 +81,8 @@ export default function App() {
           onPointerMissed={() => clear({ selected: null })}
         >
           <MotionDriver />
-          <Engine />
+          {Driver && <Driver key={`driver-${machine.id}`} />}
+          <Model key={machine.id} />
           <Guides />
           <OrbitControls makeDefault enablePan={false} minDistance={3} maxDistance={160} maxPolarAngle={Math.PI * 0.49} enableDamping dampingFactor={0.08} />
           <CameraRig shift={shift} />

@@ -1,4 +1,4 @@
-import { ENGINE } from '../data/machine';
+import { ENGINE } from './data';
 
 /**
  * Faint orthographic drawings that sit behind the 3D plate, generated from
@@ -19,7 +19,7 @@ function Dim({ x1, x2, y, label }: { x1: number; x2: number; y: number; label: s
   );
 }
 
-export function SideElevation({ className }: { className?: string }) {
+function SideElevation({ className }: { className?: string }) {
   // x: -5.6 → 4.2, y: -1.6 → 5.2 (scene units), drawn y-down.
   const X = (x: number) => (x + 5.6) * S;
   const Y = (y: number) => (5.2 - y) * S;
@@ -61,7 +61,7 @@ export function SideElevation({ className }: { className?: string }) {
   );
 }
 
-export function EndElevation({ className }: { className?: string }) {
+function EndElevation({ className }: { className?: string }) {
   // Looking along the engine axis: z → horizontal, y up.
   const Z = (z: number) => (z + 3.0) * S;
   const Y = (y: number) => (5.0 - y) * S;
@@ -85,5 +85,15 @@ export function EndElevation({ className }: { className?: string }) {
       </g>
       <Dim x1={Z(-2.9)} x2={Z(1.3)} y={Y(-1.45)} label="4200" />
     </svg>
+  );
+}
+
+/** Faint side and end elevations behind the plate. */
+export function EngineBackdrop() {
+  return (
+    <>
+      <SideElevation className="drawing drawing--side" />
+      <EndElevation className="drawing drawing--end" />
+    </>
   );
 }

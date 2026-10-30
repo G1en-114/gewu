@@ -1,4 +1,4 @@
-import { ENGINE, MACHINE_PARTS } from './data/machine';
+import { currentMachine } from './machines';
 import { motion, useStudio } from './state';
 import { PALETTE } from './scene/ink';
 
@@ -111,6 +111,7 @@ function relax(points: Array<{ x: number; y: number }>, radius: number, bounds: 
 export async function exportPlate() {
   const source = stageCanvas();
   if (!source) return;
+  const machine = currentMachine();
   const state = useStudio.getState();
   const restoreLabels = state.labels;
   const restoreDpr = bridge.getDpr?.() ?? window.devicePixelRatio;
@@ -143,7 +144,7 @@ export async function exportPlate() {
   ctx.fillText('MECHANISM STUDIO', 150, 530);
   ctx.font = `400 46px ${ZH}`;
   ctx.letterSpacing = '16px';
-  ctx.fillText('卧式单缸蒸汽机 · 爆炸图', 150, 620);
+  ctx.fillText(`${machine.name} · 爆炸图`, 150, 620);
   ctx.letterSpacing = '4px';
   ctx.fillStyle = RUST;
   ctx.font = `500 40px ${EN}`;
@@ -213,7 +214,7 @@ export async function exportPlate() {
   ctx.fillText('零件明细 · PARTS', tx, ty - 30);
   ctx.letterSpacing = '0px';
   const rowH = 82;
-  MACHINE_PARTS.forEach((part, i) => {
+  machine.parts.forEach((part, i) => {
     const y = ty + i * rowH;
     ctx.fillStyle = 'rgba(36, 34, 31, 0.16)';
     ctx.fillRect(tx, y, 700, 1.5);
@@ -229,7 +230,7 @@ export async function exportPlate() {
     ctx.fillText(part.en, tx + 700, y + 54);
     ctx.textAlign = 'left';
   });
-  ty += MACHINE_PARTS.length * rowH;
+  ty += machine.parts.length * rowH;
   ctx.fillStyle = 'rgba(36, 34, 31, 0.45)';
   ctx.fillRect(tx, ty, 700, 2);
 
@@ -247,22 +248,23 @@ export async function exportPlate() {
   ctx.stroke();
   ctx.fillStyle = INK;
   ctx.font = `600 40px ${ZH}`;
-  ctx.fillText('格物 · 卧式单缸蒸汽机', bx + 28, by + 62);
+  ctx.fillText(`格物 · ${machine.name}`, bx + 28, by + 62);
   ctx.font = `400 30px ${ZH}`;
   ctx.fillStyle = 'rgba(36, 34, 31, 0.7)';
-  ctx.fillText('图号 GW-ME-001', bx + 28, by + 152);
-  ctx.fillText(`比例 1 : 20 · 曲柄 ${ENGINE.crankRadius * 1000}`, bx + 378, by + 152);
+  ctx.fillText(`图号 ${machine.drawingNo}`, bx + 28, by + 152);
+  ctx.fillText(`比例 ${machine.scale}`, bx + 378, by + 152);
 
   // Restore the live view before the (slow) PNG encode.
   bridge.setDpr?.(restoreDpr);
   useStudio.getState().set({ labels: restoreLabels });
-  download('gewu-mill-engine-plate.png', out.toDataURL('image/png'));
+  download(`gewu-${machine.id}-plate.png`, out.toDataURL('image/png'));
 }
 
 /** Records assembled → exploded → assembled as a WebM on paper. */
 export async function recordTeardown(onProgress: (seconds: number | null) => void) {
   const source = stageCanvas();
   if (!source || typeof MediaRecorder === 'undefined') return;
+  const machine = currentMachine();
   const out = document.createElement('canvas');
   out.width = source.width;
   out.height = source.height;
@@ -283,7 +285,7 @@ export async function recordTeardown(onProgress: (seconds: number | null) => voi
     const s = out.width / source.clientWidth;
     ctx.fillStyle = INK;
     ctx.font = `600 ${Math.round(22 * s)}px ${ZH}`;
-    ctx.fillText('格物 · 卧式单缸蒸汽机', 32 * s, out.height - 34 * s);
+    ctx.fillText(`格物 · ${machine.name}`, 32 * s, out.height - 34 * s);
     ctx.fillStyle = RUST;
     ctx.font = `500 ${Math.round(16 * s)}px ${EN}`;
     ctx.fillText('MECHANISM STUDIO · FIG. 01', 32 * s, out.height - 64 * s);
@@ -310,5 +312,5 @@ export async function recordTeardown(onProgress: (seconds: number | null) => voi
   motion.explodeRate = 0.55;
   useStudio.getState().set(restore);
   onProgress(null);
-  download('gewu-mill-engine-teardown.webm', URL.createObjectURL(new Blob(chunks, { type: 'video/webm' })));
+  download(`gewu-${machine.id}-teardown.webm`, URL.createObjectURL(new Blob(chunks, { type: 'video/webm' })));
 }

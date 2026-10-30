@@ -1,11 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { partById } from '../data/machine';
 import { useStudio } from '../state';
-import type { MachinePartId } from '../types/machine';
 import { createInkMaterial } from './ink';
-import { stageProgress } from './explode';
+import { partDef, partOffset } from './explode';
 
 /** World-space section plane; its constant is animated to sweep the cut in. */
 export const SECTION_PLANE = new THREE.Plane(new THREE.Vector3(0, 0, -1), 100);
@@ -17,16 +15,16 @@ interface PartMaterials {
 
 const PartContext = createContext<PartMaterials | null>(null);
 
-export function Part({ id, tone = 1, children }: { id: MachinePartId; tone?: number; children: ReactNode }) {
-  const descriptor = partById(id);
+export function Part({ id, tone = 1, children }: { id: string; tone?: number; children: ReactNode }) {
+  const index = partDef(id)?.index ?? 15;
   const group = useRef<THREE.Group>(null);
   const materials = useMemo<PartMaterials>(() => {
-    const partId = descriptor.index / 32;
+    const partId = index / 32;
     return {
       solid: createInkMaterial({ partId, tone }),
       clipped: createInkMaterial({ partId, tone, clip: [SECTION_PLANE] }),
     };
-  }, [descriptor.index, tone]);
+  }, [index, tone]);
   const select = useStudio((s) => s.set);
 
   useEffect(() => () => {
@@ -36,9 +34,7 @@ export function Part({ id, tone = 1, children }: { id: MachinePartId; tone?: num
 
   useFrame((_, dt) => {
     const { selected, hovered } = useStudio.getState();
-    const [x, y, z] = descriptor.explode;
-    const t = stageProgress(id);
-    group.current?.position.set(x * t, y * t, z * t);
+    if (group.current) partOffset(id, group.current.position);
     const k = 1 - Math.exp(-dt * 10);
     for (const material of [materials.solid, materials.clipped]) {
       const u = material.uniforms;

@@ -75,3 +75,55 @@ export function bedSection() {
   s.closePath();
   return s;
 }
+
+/**
+ * Square thread: a rectangular tooth (radial r0→r1, axial width pitch/2)
+ * swept along a helix of the given pitch, along local +Y from 0 to length.
+ */
+export function squareThread(key: string, r0: number, r1: number, pitch: number, length: number, segmentsPerTurn = 48) {
+  return memo(`thread:${key}`, () => {
+    const turns = (length - pitch / 2) / pitch;
+    const rings = Math.max(2, Math.round(turns * segmentsPerTurn) + 1);
+    const w = pitch / 2;
+    const positions: number[] = [];
+    // Tooth outline in the (r, y) half-plane, counter-clockwise.
+    const profile: Array<[number, number]> = [[r0, 0], [r1, 0], [r1, w], [r0, w]];
+    for (let i = 0; i < rings; i += 1) {
+      const a = (i / segmentsPerTurn) * Math.PI * 2;
+      const lift = (a / (Math.PI * 2)) * pitch;
+      for (const [r, y] of profile) positions.push(r * Math.sin(a), y + lift, r * Math.cos(a));
+    }
+    const index: number[] = [];
+    for (let i = 0; i < rings - 1; i += 1) {
+      for (let k = 0; k < 4; k += 1) {
+        const a = i * 4 + k;
+        const b = i * 4 + ((k + 1) % 4);
+        const c = a + 4;
+        const d = b + 4;
+        index.push(a, c, b, b, c, d);
+      }
+    }
+    // End caps.
+    const last = (rings - 1) * 4;
+    index.push(0, 1, 2, 0, 2, 3, last, last + 2, last + 1, last, last + 3, last + 2);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.setIndex(index);
+    g.computeVertexNormals();
+    // Make sure the outer face points away from the axis (winding depends on the sweep direction).
+    const n = g.getAttribute('normal');
+    const p = g.getAttribute('position');
+    const probe = 1 * 4 + 1;
+    const radial = new THREE.Vector3(p.getX(probe), 0, p.getZ(probe)).normalize();
+    const normal = new THREE.Vector3(n.getX(probe), n.getY(probe), n.getZ(probe));
+    if (normal.dot(radial) < 0) {
+      const idx = g.getIndex()!;
+      for (let i = 0; i < idx.count; i += 3) {
+        const t = idx.getX(i + 1);
+        idx.setX(i + 1, idx.getX(i + 2));
+        idx.setX(i + 2, t);
+      }
+    }
+    return crease(g.toNonIndexed());
+  });
+}

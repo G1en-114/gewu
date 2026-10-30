@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ENGINE } from '../data/machine';
+import { ENGINE } from './data';
 
 /**
  * Pure geometry of the engine's moving linkages. Everything here is a

@@ -1,23 +1,21 @@
 import { create } from 'zustand';
-import type { FocusId, MachinePartId, ViewMode } from './types/machine';
+
+export type ViewMode = 'perspective' | 'elevation' | 'plan';
 
 export interface StudioState {
+  machineId: string;
   explode: number;
   section: boolean;
   running: boolean;
-  /** Load on the engine, 0–1. Speed follows from steam, load and the governor. */
-  load: number;
-  /** Whether the governor is linked to the throttle. */
-  governor: boolean;
   view: ViewMode;
-  /** Optional close-up within the perspective view. */
-  focus: FocusId | null;
+  /** Optional close-up within the perspective view (a key of the machine's camera foci). */
+  focus: string | null;
   /** Bumped to make the camera return to the current view preset. */
   viewNonce: number;
-  selected: MachinePartId | null;
+  selected: string | null;
+  hovered: string | null;
   /** Part opened on its own (local explode), with its neighbours. */
-  localExplode: MachinePartId | null;
-  hovered: MachinePartId | null;
+  localExplode: string | null;
   step: number;
   /** Show numbered balloons for every part. */
   labels: boolean;
@@ -25,17 +23,16 @@ export interface StudioState {
 }
 
 export const useStudio = create<StudioState>((set) => ({
+  machineId: 'jack',
   explode: 0,
   section: false,
   running: true,
-  load: 0.5,
-  governor: true,
   view: 'perspective',
   focus: null,
   viewNonce: 0,
   selected: null,
-  localExplode: null,
   hovered: null,
+  localExplode: null,
   step: 0,
   labels: typeof window === 'undefined' || window.innerWidth >= 700,
   set: (patch) => set(patch),
@@ -43,7 +40,8 @@ export const useStudio = create<StudioState>((set) => ({
 
 /**
  * Per-frame values eased toward the store's targets. Kept outside React so
- * the scene can animate without re-rendering.
+ * the scene can animate without re-rendering. Machine-specific motion lives
+ * with each machine.
  */
 export const motion = {
   /** Starts apart so the machine assembles itself on load. */
@@ -51,13 +49,19 @@ export const motion = {
   /** Slider units per second; slowed down while recording the teardown. */
   explodeRate: 0.55,
   /** Local explode: which part, and its 0–1 progress. */
-  localPart: null as MachinePartId | null,
+  localPart: null as string | null,
   local: 0,
-  theta: 0.6,
-  /** Governor arm angle from vertical, radians. */
-  phi: 0.26,
-  /** Shaft speed and throttle opening produced by the simple engine model. */
-  rpm: 0,
-  throttle: 1,
-  spin: 0,
 };
+
+/** Switch machine: reset the study state and let the new machine assemble itself. */
+export function selectMachine(id: string) {
+  const { viewNonce, machineId } = useStudio.getState();
+  if (id === machineId) return;
+  motion.explode = 1;
+  motion.local = 0;
+  motion.localPart = null;
+  useStudio.getState().set({
+    machineId: id, explode: 0, section: false, running: true, view: 'perspective', focus: null,
+    viewNonce: viewNonce + 1, selected: null, hovered: null, localExplode: null, step: 0,
+  });
+}

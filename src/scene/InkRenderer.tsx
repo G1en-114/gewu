@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { compositeFragment, compositeVertex, inkUniforms, PALETTE, rgb } from './ink';
-import { partById } from '../data/machine';
+import { partDef } from './explode';
 import { useStudio } from '../state';
 
 /** Layer used for construction lines drawn on top of the ink composite. */
@@ -80,7 +80,7 @@ export function InkRenderer({ lineWidth = 1.15, hatch = 1 }: { lineWidth?: numbe
     uniforms.uFar.value = cam.far;
     uniforms.uOrtho.value = (cam as THREE.OrthographicCamera).isOrthographicCamera ? 1 : 0;
     const { selected } = useStudio.getState();
-    uniforms.uSelId.value = selected ? partById(selected).index / 32 : -1;
+    uniforms.uSelId.value = selected ? (partDef(selected)?.index ?? -32) / 32 : -1;
 
     const background = scene.background;
     scene.background = null;
