@@ -2,7 +2,7 @@ import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import { gearShape } from '../../scene/geometry';
 import type { BoltSetDef, PartDef, StepDef } from '../types';
-import { Box, Cyl, Fastener, level, Plate, Turn, XY_Z } from './kit';
+import { Box, Cyl, Fastener, level, Plate, Turn, XY_Z } from '../kit';
 
 /**
  * Rear-axle differential. Axle axis along z, centre at the origin; the drive

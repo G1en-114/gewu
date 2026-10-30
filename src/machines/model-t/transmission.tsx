@@ -2,7 +2,7 @@ import { M, Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import { coil, gearShape } from '../../scene/geometry';
 import type { PartDef, StepDef } from '../types';
-import { Cyl, level, Plate, Turn, TO, YZ_X } from './kit';
+import { Cyl, level, Plate, Turn, TO, YZ_X } from '../kit';
 
 /**
  * Model T planetary transmission. Axis along x; x = 0 is the flywheel's rear

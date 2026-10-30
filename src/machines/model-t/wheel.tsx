@@ -2,7 +2,7 @@ import { M, Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import { cyl } from '../../scene/geometry';
 import type { BoltSetDef, PartDef, StepDef } from '../types';
-import { circleProfile, Fastener, level, Turn } from './kit';
+import { circleProfile, Fastener, level, Turn } from '../kit';
 
 /**
  * Wood-spoke artillery wheel, 30 × 3½ clincher (rear; the front tyre is

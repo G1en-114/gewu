@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { box, cyl, extrude, lathe } from '../../scene/geometry';
-import { M, usePartDepth } from '../../scene/Part';
-import { HALF_PI } from '../../scene/parts';
-import { boltSetDef, stageProgress } from '../../scene/explode';
-import type { MachineDef, Vec3 } from '../types';
+import { box, cyl, extrude, lathe } from '../scene/geometry';
+import { M, usePartDepth } from '../scene/Part';
+import { HALF_PI } from '../scene/parts';
+import { boltSetDef, stageProgress } from '../scene/explode';
+import type { MachineDef, Vec3 } from './types';
 
 /**
  * Shared modelling kit for the Model T and its subassemblies. Everything is
@@ -65,9 +65,32 @@ export function Rod({ a, b, r, r2, seg = 16 }: { a: Vec3; b: Vec3; r: number; r2
   return <M clip geo={cyl(r2 ?? r, r, len, seg)} p={[mid.x, mid.y, mid.z]} r={[e.x, e.y, e.z]} />;
 }
 
+/** A lathe profile wound counter-clockwise in (r, h), so its faces point out of the material. */
+export function ccw(profile: Array<[number, number]>) {
+  let area = 0;
+  profile.forEach(([r, h], i) => {
+    const [r2, h2] = profile[(i + 1) % profile.length];
+    area += r * h2 - r2 * h;
+  });
+  return area >= 0 ? profile : [...profile].reverse();
+}
+
 /** Lathe profile (radius, height) turned about an axis through p. */
 export function Turn({ k, profile, p = [0, 0, 0], axis = 'y', seg = 48 }: { k: string; profile: Array<[number, number]>; p?: Vec3; axis?: Dir; seg?: number }) {
-  return <M clip geo={lathe(`mt-${k}`, profile, seg)} p={p} r={TO[axis]} />;
+  return <M clip geo={lathe(`mt-${k}`, ccw(profile), seg)} p={p} r={TO[axis]} />;
+}
+
+/** Profiles for thin-walled turned parts (radius, height along the axis). */
+export const tube = (r: number, h0: number, h1: number, t = 0.06): Array<[number, number]> => [[r - t, h0], [r, h0], [r, h1], [r - t, h1]];
+export const cone = (r0: number, r1: number, h0: number, h1: number, t = 0.06): Array<[number, number]> => [[r0 - t, h0], [r0, h0], [r1, h1], [r1 - t, h1]];
+/** Ellipsoidal dome of radius r on the plane h, bulging `depth` toward +h (or −h when depth < 0). */
+export function dome(r: number, h: number, depth: number, t = 0.06, n = 14): Array<[number, number]> {
+  const outer = Array.from({ length: n + 1 }, (_, i): [number, number] => {
+    const a = (i / n) * (Math.PI / 2);
+    return [r * Math.cos(a), h + depth * Math.sin(a)];
+  });
+  const inner = outer.map(([rr, hh]): [number, number] => [Math.max(0, rr - t), h + (hh - h) * (1 - t / Math.abs(depth))]).reverse();
+  return [...outer, ...inner];
 }
 
 /** Flat shape extruded: see YZ_X / XY_Z / XZ_Y for the plane. */

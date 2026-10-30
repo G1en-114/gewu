@@ -1,7 +1,7 @@
 import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import type { PartDef, StepDef, Vec3 } from '../types';
-import { Box, Cyl, level, Plate, Rod, YZ_X } from './kit';
+import { Box, Cyl, level, Plate, Rod, YZ_X } from '../kit';
 import { springLeaf } from './rearAxle';
 
 /**

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import type { BoltSetDef, PartDef, StepDef, Vec3 } from '../types';
-import { Box, Cyl, Fastener, level, Plate, Rod, Turn, YZ_X } from './kit';
+import { Box, Cyl, Fastener, level, Plate, Rod, Turn, YZ_X } from '../kit';
 import { Differential } from './differential';
 
 /**

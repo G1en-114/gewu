@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import type { PartDef, StepDef, Vec3 } from '../types';
-import { Box, Cyl, Hoop, level, Pipe, Plate, poly, Rod, roundFrame, Turn, XY_Z, XZ_Y, YZ_X } from './kit';
+import { Box, Cyl, Hoop, level, Pipe, Plate, poly, Rod, roundFrame, Turn, XY_Z, XZ_Y, YZ_X } from '../kit';
 import { Engine } from './engine';
 import { FrontAxle } from './frontAxle';
 import { RearAxle } from './rearAxle';

@@ -6,7 +6,7 @@ import { Callout } from '../../scene/Overlay';
 import { coil, gearShape, webShape } from '../../scene/geometry';
 import { useStudio } from '../../state';
 import type { BoltSetDef, PartDef, StepDef } from '../types';
-import { ArcTurn, Box, Cyl, Fastener, level, Pipe, Plate, poly, Rod, roundFrame, roundRect, Turn, XZ_Y, YZ_X } from './kit';
+import { ArcTurn, Box, Cyl, Fastener, level, Pipe, Plate, poly, Rod, roundFrame, roundRect, Turn, XZ_Y, YZ_X } from '../kit';
 import { PistonRod, pistonAngles } from './piston';
 import { Transmission } from './transmission';
 
