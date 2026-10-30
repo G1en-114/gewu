@@ -8,6 +8,7 @@ import type { FocusId, MachinePartId, ScenePoint, ViewMode } from '../types/mach
 import { OVERLAY_LAYER } from './InkRenderer';
 import { PALETTE } from './ink';
 import { SECTION_PLANE } from './Part';
+import { governedOpening, phiForRpm } from './kinematics';
 
 const AX = ENGINE.axisY;
 
@@ -73,6 +74,8 @@ function guideOrigins(): Array<[MachinePartId, THREE.Vector3]> {
   [-0.48, -2.0].forEach((z) => [-0.25, 0.25].forEach((dx) => out.push(['main-bearing', v(ENGINE.crankX + dx, AX + 0.18, z)])));
   out.push(['flywheel', v(ENGINE.crankX, AX, ENGINE.flywheelZ)]);
   out.push(['governor', v(ENGINE.governor[0], 3.95 + 0.3, ENGINE.governor[2])]);
+  out.push(['valve-gear', v(-1.9, 1.75, -0.42)]);
+  out.push(['valve-gear', v(ENGINE.crankX, AX, -0.8)]);
   return out;
 }
 
@@ -149,20 +152,32 @@ export function Guides() {
   return null;
 }
 
-/** Eases explode / section / governor toward the store and advances the crank. */
+/** Full-throttle steam torque and full-load drag, in rpm-equivalent units. */
+const STEAM = 72;
+const LOAD = 48;
+
+/** Eases explode / section toward the store, and runs the engine model. */
 export function MotionDriver() {
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
-    const { explode, running, rpm, section } = useStudio.getState();
+    const { explode, running, load, governor, section } = useStudio.getState();
     const k = 1 - Math.exp(-dt * 3.2);
     motion.explode += (explode - motion.explode) * k;
 
-    const omega = running ? (rpm / 60) * Math.PI * 2 : 0;
+    // A deliberately simple engine: steam torque scales with the throttle
+    // opening, the load and friction pull speed down. With the governor
+    // linked, the throttle closes as the balls fly out, which holds the
+    // speed near ~25 rpm whatever the load; unlinked, speed follows load.
+    const opening = !running ? 0 : governor ? governedOpening(motion.phi) : 1;
+    motion.throttle += (opening - motion.throttle) * (1 - Math.exp(-dt * 6));
+    const accel = (STEAM * motion.throttle - LOAD * load - motion.rpm) * 0.7;
+    motion.rpm = Math.max(0, motion.rpm + accel * dt);
+
+    const omega = (motion.rpm / 60) * Math.PI * 2;
     motion.theta = (motion.theta + omega * dt) % (Math.PI * 2);
     motion.spin = (motion.spin + omega * 1.6 * dt) % (Math.PI * 2);
-    const speed = running ? Math.min(1, rpm / 60) : 0;
-    const phiTarget = 0.26 + 0.62 * speed * speed;
-    motion.phi += (phiTarget - motion.phi) * (1 - Math.exp(-dt * 1.6));
+    // The balls lag the shaft a little, which is what makes real governors hunt.
+    motion.phi += (phiForRpm(motion.rpm) - motion.phi) * (1 - Math.exp(-dt * 1.6));
 
     const cutTarget = section ? 0 : 1.1;
     const current = SECTION_PLANE.constant > 50 ? 1.1 : SECTION_PLANE.constant;

@@ -87,22 +87,22 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   margin: 0;
   font-family: var(--serif-zh);
   font-weight: 900;
-  font-size: clamp(76px, 8.4vw, 124px);
+  font-size: clamp(72px, min(8vw, 12vh), 116px);
   line-height: 0.98;
   letter-spacing: 0.02em;
 }
-.mast-rule { height: 1px; background: var(--ink); opacity: 0.55; margin: 22px 0 14px; width: 100%; }
+.mast-rule { height: 1px; background: var(--ink); opacity: 0.55; margin: 18px 0 12px; width: 100%; }
 .mast-en {
   margin: 0;
   font: 500 23px/1 var(--serif-en);
   letter-spacing: 0.2em;
 }
 .mast-zh { margin: 12px 0 0; font-size: 19px; letter-spacing: 0.32em; font-weight: 400; }
-.fig-rule { display: flex; align-items: center; gap: 14px; margin-top: 26px; }
+.fig-rule { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
 .fig-rule span { font: 500 15px var(--serif-en); color: var(--rust); letter-spacing: 0.08em; white-space: nowrap; }
 .fig-rule i { flex: 1; height: 1px; background: var(--hair-strong); }
 
-.subject { margin-top: 26px; }
+.subject { margin-top: 20px; }
 .subject h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.12em; }
 .subject p { margin: 4px 0 0; font: italic 500 15px var(--serif-en); color: var(--ink-2); letter-spacing: 0.02em; }
 
@@ -114,7 +114,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   grid-template-columns: 32px auto 1fr;
   align-items: baseline;
   gap: 10px;
-  padding: 9px 0 8px;
+  padding: 7px 0 6px;
   text-align: left;
 }
 .step-num { font: 500 14px var(--serif-en); color: var(--ink-3); }
@@ -123,9 +123,9 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .steps li.is-active .step-num, .steps li.is-active .step-en { color: var(--rust); }
 .steps li.is-active .step-title { font-weight: 600; }
 .steps button:hover .step-title { color: var(--rust); }
-.step-body { margin: 0 0 12px 42px; font-size: 13px; line-height: 1.85; color: var(--ink-2); }
+.step-body { margin: 0 0 10px 42px; font-size: 12.5px; line-height: 1.75; color: var(--ink-2); }
 
-.controls { margin-top: 18px; display: grid; gap: 10px; }
+.controls { margin-top: 14px; display: grid; gap: 8px; }
 .slider { display: grid; grid-template-columns: 38px 1fr 62px; align-items: center; gap: 12px; font-size: 13px; letter-spacing: 0.12em; }
 .slider output { font: 500 14px var(--serif-en); color: var(--ink-2); text-align: right; letter-spacing: 0.04em; }
 .slider input { -webkit-appearance: none; appearance: none; height: 16px; background: transparent; margin: 0; }
@@ -138,7 +138,11 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 }
 .slider input::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--paper-hi); border: 1px solid var(--rust); }
 
-.toggles { display: flex; gap: 22px; margin-top: 4px; padding-left: 50px; }
+.gauges { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding-left: 50px; font: 500 13px var(--serif-en); color: var(--ink-3); letter-spacing: 0.06em; }
+.gauges b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gauge-bar { height: 1px; background: var(--hair); position: relative; }
+.gauge-bar i { position: absolute; left: 0; top: -1px; height: 3px; background: var(--rust); transition: width 0.15s linear; }
+.toggles { display: flex; gap: 18px; margin-top: 4px; padding-left: 50px; }
 .toggles button, .plate-meta button {
   position: relative;
   font-size: 13px;
@@ -161,6 +165,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 
 .prompt {
   margin-top: auto;
+  padding-top: 14px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -264,6 +269,12 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .callout.is-selected .callout-num { font-weight: 600; }
 
 /* ── Responsive ───────────────────────────────────── */
+
+/* Short desktop windows: drop the prompt line before anything collides. */
+@media (min-width: 1100px) and (max-height: 860px) {
+  .title-column .prompt, .title-column .prompt-notice { display: none; }
+  .subject p { display: none; }
+}
 
 @media (max-width: 1280px) {
   .drawing--side { width: 26vw; opacity: 0.24; }

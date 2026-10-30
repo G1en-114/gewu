@@ -5,7 +5,10 @@ export interface StudioState {
   explode: number;
   section: boolean;
   running: boolean;
-  rpm: number;
+  /** Load on the engine, 0–1. Speed follows from steam, load and the governor. */
+  load: number;
+  /** Whether the governor is linked to the throttle. */
+  governor: boolean;
   view: ViewMode;
   /** Optional close-up within the perspective view. */
   focus: FocusId | null;
@@ -23,7 +26,8 @@ export const useStudio = create<StudioState>((set) => ({
   explode: 0,
   section: false,
   running: true,
-  rpm: 24,
+  load: 0.5,
+  governor: true,
   view: 'perspective',
   focus: null,
   viewNonce: 0,
@@ -43,6 +47,9 @@ export const motion = {
   explode: 1,
   theta: 0.6,
   /** Governor arm angle from vertical, radians. */
-  phi: 0.5,
+  phi: 0.26,
+  /** Shaft speed and throttle opening produced by the simple engine model. */
+  rpm: 0,
+  throttle: 1,
   spin: 0,
 };

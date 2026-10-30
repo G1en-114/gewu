@@ -70,8 +70,13 @@ export const MACHINE_PARTS: readonly MachinePartDescriptor[] = [
   },
   {
     id: 'governor', index: 12, name: '离心调速器', en: 'Flyball Governor', role: '转速反馈控制', material: '钢 · 黄铜 · STEEL',
-    description: '转速升高时飞球外张、套筒上移，经杠杆关小节流阀；转速下降时反之。',
+    description: '转速升高时飞球外张、套筒上移，经杠杆与拉杆关小节流阀；转速下降时反之。',
     explode: [0, 1.25, 0], anchor: [0, 3.95, 0],
+  },
+  {
+    id: 'valve-gear', index: 13, name: '配汽机构', en: 'Valve Gear', role: '定时开关汽口', material: '钢 · STEEL',
+    description: '曲轴上的偏心轮超前曲柄约 90°，经偏心杆、摇杆和阀杆推动滑阀，让蒸汽轮流进入活塞两侧。',
+    explode: [0, 0.45, -0.75], anchor: [0, 0, 0],
   },
 ] as const;
 
@@ -83,33 +88,33 @@ export interface StudyStep {
   title: string;
   en: string;
   body: string;
-  state: { explode: number; section: boolean; running: boolean; rpm: number; select: MachinePartId | null; focus: FocusId | null };
+  state: { explode: number; section: boolean; running: boolean; load: number; governor: boolean; select: MachinePartId | null; focus: FocusId | null };
 }
 
 export const STUDY_STEPS: StudyStep[] = [
   {
     title: '整机', en: 'Assembly',
     body: '一台卧式单缸蒸汽机：气缸、十字头、连杆与曲轴排在同一条中心线上，飞轮在轮坑中旋转。',
-    state: { explode: 0, section: false, running: true, rpm: 24, select: null, focus: null },
+    state: { explode: 0, section: false, running: true, load: 0.5, governor: true, select: null, focus: null },
   },
   {
     title: '剖视', en: 'Section',
-    body: '沿中心面剖开气缸与阀箱：蒸汽轮流推动活塞两侧，往复行程等于两倍曲柄半径。',
-    state: { explode: 0, section: true, running: true, rpm: 18, select: 'piston', focus: 'cylinder' },
+    body: '沿中心面剖开气缸与阀箱：滑阀由偏心轮驱动来回移动，轮流打开两端汽口，蒸汽交替推动活塞两侧。',
+    state: { explode: 0, section: true, running: true, load: 0.85, governor: true, select: 'piston', focus: 'cylinder' },
   },
   {
     title: '传动', en: 'Linkage',
     body: '十字头把活塞杆约束为直线，连杆再把往复运动转成曲轴的旋转，这是整机的核心。',
-    state: { explode: 0, section: false, running: true, rpm: 20, select: 'connecting-rod', focus: 'linkage' },
+    state: { explode: 0, section: false, running: true, load: 0.5, governor: true, select: 'connecting-rod', focus: 'linkage' },
   },
   {
     title: '调速', en: 'Governing',
-    body: '提高转速，离心力使飞球外张、套筒上升，经杠杆关小节流阀，转速随之回落。',
-    state: { explode: 0, section: false, running: true, rpm: 48, select: 'governor', focus: 'governor' },
+    body: '转速升高，飞球外张、套筒上升，经杠杆关小节流阀，转速随之回落。试着减小负载，再关掉调速器对比。',
+    state: { explode: 0, section: false, running: true, load: 0.5, governor: true, select: 'governor', focus: 'governor' },
   },
   {
     title: '拆解', en: 'Exploded',
     body: '沿装配方向拉开各零件：缸盖与活塞沿轴线抽出，阀箱、调速器与轴承盖向上提起。',
-    state: { explode: 1, section: false, running: false, rpm: 24, select: null, focus: null },
+    state: { explode: 1, section: false, running: false, load: 0.5, governor: true, select: null, focus: null },
   },
 ];

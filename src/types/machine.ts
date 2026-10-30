@@ -12,7 +12,8 @@ export type MachinePartId =
   | 'crankshaft'
   | 'main-bearing'
   | 'flywheel'
-  | 'governor';
+  | 'governor'
+  | 'valve-gear';
 
 export type ScenePoint = [number, number, number];
 

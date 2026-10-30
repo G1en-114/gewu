@@ -5,6 +5,10 @@ import { ENGINE } from '../data/machine';
 import { motion } from '../state';
 import { bedSection, box, cyl, extrude, hexNut, lathe, sphere, stud, webShape } from './geometry';
 import { M, Part } from './Part';
+import {
+  crossheadX, GOVERNOR, LEVER_PIVOT_Y, LEVER_YAW, leverAngle, leverOuterEnd, rockerPose, sleeveY,
+  THROTTLE_ARM, THROTTLE_POS, throttleArmAngle, throttleArmTip, VALVE_GEAR,
+} from './kinematics';
 import { Callout } from './Overlay';
 
 type Vec3 = [number, number, number];
@@ -16,11 +20,12 @@ const ALONG_X: Vec3 = [0, 0, -HALF_PI];
 const ALONG_NEG_X: Vec3 = [0, 0, HALF_PI];
 const ALONG_Z: Vec3 = [HALF_PI, 0, 0];
 
-/** Crosshead pin x for a crank angle (slider-crank, cylinder on the -x side). */
-export function crossheadX(theta: number) {
-  const { crankRadius: r, rodLength: l } = ENGINE;
-  const s = r * Math.sin(theta);
-  return CX + r * Math.cos(theta) - Math.sqrt(l * l - s * s);
+/** Stretch a unit-length bar (along local x) between two points in a z plane. */
+function placeBar(mesh: THREE.Object3D | null, ax: number, ay: number, bx: number, by: number, z: number) {
+  if (!mesh) return;
+  mesh.position.set((ax + bx) / 2, (ay + by) / 2, z);
+  mesh.rotation.set(0, 0, Math.atan2(by - ay, bx - ax));
+  mesh.scale.set(Math.hypot(bx - ax, by - ay), 1, 1);
 }
 
 function Bolt({ p, axis = 'y', flip = false, clip = false }: { p: Vec3; axis?: 'x' | 'y' | 'z'; flip?: boolean; clip?: boolean }) {
@@ -142,6 +147,10 @@ function Piston() {
 }
 
 function ValveChest() {
+  const arm = useRef<THREE.Group>(null);
+  useFrame(() => {
+    arm.current?.rotation.set(0, 0, throttleArmAngle(motion.phi));
+  });
   return (
     <Part id="valve-chest">
       <M clip geo={box(0.9, 0.4, 0.66)} p={[-3.5, AX + 0.92, 0]} />
@@ -149,13 +158,19 @@ function ValveChest() {
       {[-3.92, -3.5, -3.08].flatMap((x) => [-0.3, 0.3].map((z) => <Bolt key={`${x}${z}`} p={[x, AX + 1.2, z]} clip />))}
       {/* valve spindle and gland on the crank side */}
       <M geo={lathe('valve-gland', [[0, 0], [0.12, 0], [0.12, 0.08], [0.08, 0.08], [0.08, 0.22], [0, 0.22]], 40)} p={[-3.05, AX + 0.92, 0]} r={ALONG_X} />
-      <M geo={cyl(0.03, 0.03, 0.9, 16)} p={[-2.7, AX + 0.92, 0]} r={ALONG_X} />
       {/* steam pipe, throttle valve and elbow */}
       <M geo={cyl(0.13, 0.13, 0.05, 32)} p={[-3.5, AX + 1.225, 0]} />
       <M geo={cyl(0.085, 0.085, 0.5, 32)} p={[-3.5, AX + 1.45, 0]} />
       <M geo={sphere(0.17)} p={[-3.5, AX + 1.6, 0]} />
       <M geo={cyl(0.03, 0.03, 0.3, 12)} p={[-3.5, AX + 1.6, 0.25]} r={ALONG_Z} />
       <M geo={lathe('handwheel', [[0.1, -0.015], [0.14, -0.015], [0.14, 0.015], [0.1, 0.015]], 40)} p={[-3.5, AX + 1.6, 0.4]} r={ALONG_Z} />
+      {/* throttle spindle and crank, worked by the governor */}
+      <M geo={cyl(0.028, 0.028, 0.32, 12)} p={[THROTTLE_POS.x, THROTTLE_POS.y, THROTTLE_ARM.z / 2 - 0.02]} r={ALONG_Z} />
+      <group ref={arm} position={[THROTTLE_POS.x, THROTTLE_POS.y, THROTTLE_ARM.z]}>
+        <M geo={box(THROTTLE_ARM.length, 0.05, 0.04)} p={[THROTTLE_ARM.length / 2, 0, 0]} />
+        <M geo={cyl(0.05, 0.05, 0.06, 20)} r={ALONG_Z} />
+        <M geo={cyl(0.025, 0.025, 0.08, 12)} p={[THROTTLE_ARM.length, 0, 0]} r={ALONG_Z} />
+      </group>
       <M geo={cyl(0.085, 0.085, 0.3, 32)} p={[-3.5, AX + 1.85, 0]} />
       <M geo={cyl(0.13, 0.13, 0.05, 32)} p={[-3.5, AX + 2.0, 0]} />
       <Callout id="valve-chest" p={[-3.5, AX + 2.02, 0.1]} />
@@ -223,7 +238,7 @@ function Crankshaft() {
           <M geo={cyl(0.12, 0.12, 2.13, 40)} p={[0, 0, -1.335]} r={ALONG_Z} />
           {[-0.7, -1.78, -2.22].map((z) => <M key={z} geo={cyl(0.17, 0.17, 0.06, 40)} p={[0, 0, z]} r={ALONG_Z} />)}
           {/* eccentric sheave for the valve gear, and the governor pulley */}
-          <M geo={cyl(0.3, 0.3, 0.1, 48)} p={[0.12, 0, -0.8]} r={ALONG_Z} />
+          <M geo={cyl(0.3, 0.3, 0.1, 48)} p={[VALVE_GEAR.throw * Math.cos(VALVE_GEAR.lead), VALVE_GEAR.throw * Math.sin(VALVE_GEAR.lead), VALVE_GEAR.z]} r={ALONG_Z} />
           <M geo={lathe('pulley', [[0.12, -0.05], [0.22, -0.05], [0.2, 0], [0.22, 0.05], [0.12, 0.05]], 48)} p={[0, 0, BELT_Z]} r={ALONG_Z} />
         </group>
         <Callout id="crankshaft" p={[0, 0.12, -0.9]} />
@@ -309,24 +324,37 @@ function Governor() {
   const links = useRef<Array<THREE.Group | null>>([]);
   const sleeve = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
-  const belt = useRef<THREE.Group>(null);
-  const TOP = 3.7;
-  const ARM = 0.95;
-  const LINK = 0.46;
+  const lever = useRef<THREE.Group>(null);
+  const drive = useRef<THREE.Group>(null);
+  const rod = useRef<THREE.Group>(null);
+  const { top: TOP, arm: ARM, ball: BALL, linkAt: LINK_AT, link: LINK, sleeveOffset, leverPivot, leverOuter } = GOVERNOR;
+  const gz = ENGINE.governor[2];
   useFrame(() => {
-    // The belt only makes sense while the governor sits on its column.
-    if (belt.current) belt.current.visible = motion.explode < 0.03;
+    // Belt and throttle rod only make sense while the governor sits on its column.
+    if (drive.current) drive.current.visible = motion.explode < 0.03;
     const phi = motion.phi;
+    const ys = sleeveY(phi);
     if (head.current) head.current.rotation.y = motion.spin;
     [-1, 1].forEach((s, i) => {
       arms.current[i]?.rotation.set(0, 0, s * phi);
       const link = links.current[i];
       if (link) {
-        link.position.set(s * (0.05 + LINK * Math.sin(phi)), TOP - LINK * Math.cos(phi), 0);
-        link.rotation.set(0, 0, -s * phi);
+        const ax = s * (0.05 + LINK_AT * Math.sin(phi));
+        const ay = TOP - LINK_AT * Math.cos(phi);
+        link.position.set(ax, ay, 0);
+        link.rotation.set(0, 0, Math.atan2(s * sleeveOffset - ax, -(ys - ay)));
       }
     });
-    sleeve.current?.position.set(0, TOP - 2 * LINK * Math.cos(phi), 0);
+    sleeve.current?.position.set(0, ys - 0.06, 0);
+    lever.current?.rotation.set(0, 0, -leverAngle(phi));
+
+    if (rod.current) {
+      const a = leverOuterEnd(phi);
+      const b = throttleArmTip(phi);
+      rod.current.position.copy(a).add(b).multiplyScalar(0.5);
+      rod.current.lookAt(b);
+      rod.current.scale.set(1, 1, a.distanceTo(b));
+    }
   });
   return (
     <Part id="governor">
@@ -334,8 +362,17 @@ function Governor() {
         <M geo={lathe('gov-column', [[0, 0], [0.24, 0], [0.24, 0.06], [0.15, 0.1], [0.09, 0.3], [0.07, 1.6], [0.1, 1.7], [0.1, 1.78], [0, 1.78]], 48)} />
         <M geo={box(0.3, 0.24, 0.3)} p={[0, 1.9, 0]} />
         <M geo={cyl(0.035, 0.035, 0.42, 16)} p={[0, 1.9, -0.21]} r={ALONG_Z} />
-        <M geo={lathe('gov-pulley', [[0.03, -0.04], [0.16, -0.04], [0.14, 0], [0.16, 0.04], [0.03, 0.04]], 40)} p={[0, 1.9, BELT_Z - ENGINE.governor[2]]} r={ALONG_Z} />
+        <M geo={lathe('gov-pulley', [[0.03, -0.04], [0.16, -0.04], [0.14, 0], [0.16, 0.04], [0.03, 0.04]], 40)} p={[0, 1.9, BELT_Z - gz]} r={ALONG_Z} />
         {[-1, 1].map((s) => <Bolt key={s} p={[s * 0.16, 0.06, 0]} />)}
+        {/* fixed bracket and pillar carrying the throttle lever, turned toward the valve */}
+        <group rotation={[0, LEVER_YAW, 0]}>
+          <M geo={box(leverPivot - 0.1, 0.06, 0.08)} p={[(leverPivot + 0.1) / 2, 2.0, 0]} />
+          <M geo={box(0.06, LEVER_PIVOT_Y - 2.0, 0.06)} p={[leverPivot, (LEVER_PIVOT_Y + 2.0) / 2, 0]} />
+          <group ref={lever} position={[leverPivot, LEVER_PIVOT_Y, 0]}>
+            <M geo={box(leverPivot - 0.06 + leverOuter, 0.035, 0.035)} p={[(leverOuter - leverPivot + 0.06) / 2, 0, 0]} />
+            <M geo={cyl(0.03, 0.03, 0.12, 12)} r={ALONG_Z} />
+          </group>
+        </group>
         <group ref={head}>
           <M geo={cyl(0.035, 0.035, 1.82, 16)} p={[0, 2.93, 0]} />
           <M geo={lathe('gov-finial', [[0, 0], [0.09, 0], [0.09, 0.07], [0.05, 0.12], [0.06, 0.22], [0, 0.3]], 32)} p={[0, TOP - 0.03, 0]} />
@@ -343,7 +380,7 @@ function Governor() {
             <group key={s}>
               <group ref={(g) => { arms.current[i] = g; }} position={[s * 0.05, TOP, 0]}>
                 <M geo={cyl(0.024, 0.024, ARM, 12)} p={[0, -ARM / 2, 0]} />
-                <M geo={sphere(0.2)} p={[0, -ARM - 0.14, 0]} />
+                <M geo={sphere(BALL)} p={[0, -ARM - 0.14, 0]} />
                 <M geo={cyl(0.03, 0.03, 0.09, 12)} r={ALONG_Z} />
               </group>
               <group ref={(g) => { links.current[i] = g; }}>
@@ -358,9 +395,64 @@ function Governor() {
         </group>
         <Callout id="governor" p={[0, TOP + 0.3, 0]} />
       </group>
-      <group ref={belt}>
+      <group ref={drive}>
         {beltRuns().map(([a, b], i) => <Strip key={i} a={a} b={b} />)}
+        <group ref={rod}>
+          <M geo={box(0.03, 0.03, 1)} />
+        </group>
       </group>
+    </Part>
+  );
+}
+
+/** Eccentric, eccentric rod, rocking shaft and valve rod driving the slide valve. */
+function ValveGear() {
+  const strap = useRef<THREE.Group>(null);
+  const eRod = useRef<THREE.Group>(null);
+  const lowerArm = useRef<THREE.Group>(null);
+  const upperArm = useRef<THREE.Group>(null);
+  const valve = useRef<THREE.Group>(null);
+  const { pivot, z: Z, lowerArm: LA, upperArm: UA, valveRod } = VALVE_GEAR;
+  useFrame(() => {
+    const pose = rockerPose(motion.theta);
+    const { eccentric: e, lower } = pose;
+    strap.current?.position.set(e.x, e.y, Z);
+    // the rod starts at the strap's rim, on the side facing the rocker
+    const toward = Math.atan2(lower.y - e.y, lower.x - e.x);
+    placeBar(eRod.current, e.x + 0.37 * Math.cos(toward), e.y + 0.37 * Math.sin(toward), lower.x, lower.y, Z);
+    lowerArm.current?.rotation.set(0, 0, pose.psi);
+    upperArm.current?.rotation.set(0, 0, pose.psi);
+    valve.current?.position.set(pose.valveX, AX + 0.92, 0);
+  });
+  return (
+    <Part id="valve-gear">
+      {/* eccentric strap rides on the sheave; the rod hangs off it */}
+      <group ref={strap}>
+        <M geo={lathe('ecc-strap', [[0.3, -0.04], [0.37, -0.04], [0.37, 0.04], [0.3, 0.04]], 64)} r={ALONG_Z} />
+      </group>
+      <group ref={eRod}>
+        <M geo={box(1, 0.06, 0.04)} />
+      </group>
+      {/* rocking shaft on its bracket beside the bed */}
+      <M geo={box(0.12, 1.4, 0.12)} p={[pivot.x, 1.05, -0.42]} />
+      <M geo={box(0.3, 0.06, 0.24)} p={[pivot.x, 0.38, -0.42]} />
+      <M geo={cyl(0.07, 0.07, 0.16, 24)} p={[pivot.x, pivot.y, -0.42]} r={ALONG_Z} />
+      <M geo={cyl(0.035, 0.035, 0.92, 16)} p={[pivot.x, pivot.y, Z / 2]} r={ALONG_Z} />
+      <group ref={lowerArm} position={[pivot.x, pivot.y, Z]}>
+        <M geo={box(0.06, LA, 0.05)} p={[0, -LA / 2, 0]} />
+        <M geo={cyl(0.03, 0.03, 0.09, 12)} p={[0, -LA, 0]} r={ALONG_Z} />
+      </group>
+      <group ref={upperArm} position={[pivot.x, pivot.y, 0]}>
+        <M geo={box(0.06, UA, 0.05)} p={[0, UA / 2, 0]} />
+        <M geo={cyl(0.03, 0.03, 0.09, 12)} p={[0, UA, 0]} r={ALONG_Z} />
+      </group>
+      {/* valve rod and the D-slide valve inside the chest */}
+      <group ref={valve}>
+        <M geo={cyl(0.03, 0.03, valveRod, 16)} p={[valveRod / 2, 0, 0]} r={ALONG_X} />
+        <M clip geo={box(0.36, 0.14, 0.44)} p={[0, -0.12, 0]} />
+        <M clip geo={box(0.2, 0.06, 0.3)} p={[0, -0.03, 0]} />
+      </group>
+      <Callout id="valve-gear" p={[pivot.x, pivot.y + UA, 0.05]} />
     </Part>
   );
 }
@@ -380,6 +472,7 @@ export function Engine() {
       <BearingCaps />
       <Flywheel />
       <Governor />
+      <ValveGear />
     </group>
   );
 }

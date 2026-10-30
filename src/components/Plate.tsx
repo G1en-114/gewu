@@ -1,4 +1,5 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { motion } from '../state';
 import { MACHINE_PARTS, STUDY_STEPS, partById } from '../data/machine';
 import { useStudio } from '../state';
 import type { ViewMode } from '../types/machine';
@@ -7,7 +8,7 @@ import { parseDrawingPlaceholder, parsePrompt } from '../ai/parse';
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function TitleColumn() {
-  const { step, explode, running, section, rpm, labels, set } = useStudio();
+  const { step, explode, running, section, load, governor, labels, set } = useStudio();
   const [input, setInput] = useState('');
   const [notice, setNotice] = useState('');
   const file = useRef<HTMLInputElement>(null);
@@ -15,7 +16,7 @@ export function TitleColumn() {
   const goStep = (index: number) => {
     const { state } = STUDY_STEPS[index];
     const { viewNonce } = useStudio.getState();
-    set({ step: index, explode: state.explode, section: state.section, running: state.running, rpm: state.rpm, selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1 });
+    set({ step: index, explode: state.explode, section: state.section, running: state.running, load: state.load, governor: state.governor, selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1 });
   };
   const submit = () => {
     const prompt = input.trim();
@@ -66,12 +67,14 @@ export function TitleColumn() {
           <output>{Math.round(explode * 100)}%</output>
         </label>
         <label className="slider">
-          <span>转速</span>
-          <input type="range" min={6} max={60} step={1} value={rpm} onChange={(e) => set({ rpm: Number(e.target.value), running: true })} />
-          <output>{rpm} rpm</output>
+          <span>负载</span>
+          <input type="range" min={0} max={1} step={0.01} value={load} onChange={(e) => set({ load: Number(e.target.value), running: true })} />
+          <output>{Math.round(load * 100)}%</output>
         </label>
+        <Gauges />
         <div className="toggles">
           <button type="button" className={running ? 'is-on' : ''} onClick={() => set({ running: !running })}>{running ? '暂停' : '运转'}</button>
+          <button type="button" className={governor ? 'is-on' : ''} onClick={() => set({ governor: !governor, running: true })}>调速器</button>
           <button type="button" className={section ? 'is-on' : ''} onClick={() => set({ section: !section })}>剖视</button>
           <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
         </div>
@@ -91,6 +94,22 @@ export function TitleColumn() {
       </div>
       {notice && <p className="prompt-notice">{notice}</p>}
     </section>
+  );
+}
+
+/** Live speed and throttle readout from the engine model. */
+function Gauges() {
+  const [reading, setReading] = useState({ rpm: 0, throttle: 0 });
+  useEffect(() => {
+    const id = window.setInterval(() => setReading({ rpm: motion.rpm, throttle: motion.throttle }), 150);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div className="gauges" aria-live="off">
+      <span><b>{reading.rpm.toFixed(1)}</b> rpm</span>
+      <span className="gauge-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, (reading.rpm / 70) * 100)}%` }} /></span>
+      <span>节流阀 <b>{Math.round(reading.throttle * 100)}%</b></span>
+    </div>
   );
 }
 
