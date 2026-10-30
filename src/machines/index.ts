@@ -11,6 +11,7 @@ import { MODEL_T_LEVELS, modelT } from './model-t';
 import { SATURN_V_LEVELS, saturnV } from './saturn-v';
 import { turbofan } from './turbofan';
 import { watch } from './watch';
+import { WIND_LEVELS, wind } from './wind';
 import { jack } from './jack';
 import { pump } from './pump';
 import { valve } from './valve';
@@ -21,14 +22,14 @@ import type { MachineDef } from './types';
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen] },
-  { name: '动力', machines: [ice, engine, turbofan, gearbox] },
+  { name: '动力', machines: [ice, engine, turbofan, gearbox, wind] },
   { name: '整机', machines: [iphone, watch, bicycle, excavator, modelT, saturnV] },
 ];
 
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
 
 /** Every assembly, including subassemblies reached only by opening a part. */
-const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS];
+const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS, ...WIND_LEVELS];
 
 export const allMachines = () => ALL;
 export const hasMachine = (id: string) => ALL.some((m) => m.id === id);
