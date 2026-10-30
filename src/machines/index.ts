@@ -2,6 +2,7 @@ import { useStudio } from '../state';
 import { engine } from './engine';
 import { ice } from './ice';
 import { BICYCLE_LEVELS, bicycle } from './bicycle';
+import { EXCAVATOR_LEVELS, excavator } from './excavator';
 import { gearbox } from './gearbox';
 import { iphone } from './iphone';
 import { lock } from './lock';
@@ -20,13 +21,13 @@ import type { MachineDef } from './types';
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, lock] },
   { name: '动力', machines: [ice, engine, turbofan, gearbox] },
-  { name: '整机', machines: [iphone, watch, bicycle, modelT, saturnV] },
+  { name: '整机', machines: [iphone, watch, bicycle, excavator, modelT, saturnV] },
 ];
 
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
 
 /** Every assembly, including subassemblies reached only by opening a part. */
-const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS];
+const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS];
 
 export const allMachines = () => ALL;
 export const hasMachine = (id: string) => ALL.some((m) => m.id === id);
