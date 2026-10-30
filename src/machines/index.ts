@@ -31,9 +31,10 @@ import type { MachineDef } from './types';
 /** Machines in the order the switcher lists them. */
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
-  { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen, micrometer, aperture, cistern, gyro] },
-  { name: '动力', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, wind] },
-  { name: '整机', machines: [iphone, watch, piano, rotor, elevator, bicycle, excavator, modelT, saturnV] },
+  { name: '基础机构', machines: [jack, vise, valve, pump, micrometer, gyro] },
+  { name: '日常器物', machines: [lock, pen, cistern, aperture, iphone, watch, piano, bicycle] },
+  { name: '动力传动', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, wind] },
+  { name: '大型装备', machines: [rotor, elevator, excavator, modelT, saturnV] },
 ];
 
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
