@@ -102,7 +102,7 @@ export const wind: MachineDef = level({
   guides: [{ stage: 'nacelle', origin: [0, HUB_HEIGHT, 0] }],
   centreLines: [[[0, -3, 0], [0, 84, 0], 2.2], [[-8, ROTOR_Y, 0], [14, ROTOR_Y, 0], 45]],
   steps: STEPS,
-  camera: { target: [0, 62, 0], offset: [125, 38, 175], orthoDistance: 900, exploded: { target: [8, 66, 6], scale: 1.15 }, deep: { target: [20, 50, 4], scale: 1.2 } },
+  camera: { target: [0, 62, 0], offset: [160, 46, 225], orthoDistance: 900, exploded: { target: [8, 66, 6], scale: 1.15 }, deep: { target: [20, 50, 4], scale: 1.2 } },
   Model: Turbine,
   Driver: WindDriver,
 });
