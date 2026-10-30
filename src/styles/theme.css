@@ -122,7 +122,10 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .search-results button.is-active { background: rgba(168, 67, 47, 0.07); }
 .search-name { font-size: 13px; letter-spacing: 0.08em; color: var(--ink); }
 .search-path { font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); }
-.machines { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 16px; }
+.machines { display: grid; gap: 5px; margin-top: 14px; }
+.machines-group { display: grid; grid-template-columns: 62px 1fr; align-items: baseline; }
+.machines-list { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.machines-label { font-size: 10.5px; letter-spacing: 0.2em; color: var(--ink-3); opacity: 0.75; }
 .machines button { position: relative; font-size: 13px; letter-spacing: 0.14em; color: var(--ink-3); padding: 3px 0; }
 .machines button:hover { color: var(--ink); }
 .machines button.is-on { color: var(--ink); }
@@ -356,6 +359,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   .title-column > * { margin-left: 28px; margin-right: 28px; }
   .masthead { order: 1; padding-top: 36px; }
   .machines { order: 1; }
+  .search { order: 1; }
   .subject { order: 2; margin-top: 18px; }
   .stage { position: relative; inset: auto; order: 3; height: 52vh; min-height: 320px; max-height: 620px; }
   .plate-meta { order: 4; position: relative; top: auto; right: auto; justify-content: center; flex-wrap: wrap; padding: 4px 16px 0; background: none; }

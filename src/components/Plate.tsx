@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { allMachines, lineage, MACHINES, machineById, useMachine } from '../machines';
+import { allMachines, GROUPS, lineage, MACHINES, machineById, useMachine } from '../machines';
 import type { MachineDef } from '../machines/types';
 import { aimAt, clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 
@@ -36,10 +36,17 @@ export function TitleColumn() {
       <PartSearch />
 
       <nav className="machines" aria-label="选择机器">
-        {MACHINES.map((m) => (
-          <button key={m.id} type="button" className={m.id === root.id ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
-            {m.name}
-          </button>
+        {GROUPS.map((group) => (
+          <div key={group.name} className="machines-group">
+            <span className="machines-label">{group.name}</span>
+            <div className="machines-list">
+              {group.machines.map((m) => (
+                <button key={m.id} type="button" className={m.id === root.id ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
+                  {m.name}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 

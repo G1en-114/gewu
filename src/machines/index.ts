@@ -12,12 +12,20 @@ import { vise } from './vise';
 import type { MachineDef } from './types';
 
 /** Machines in the order the switcher lists them. */
-export const MACHINES: MachineDef[] = [jack, vise, valve, pump, ice, engine, iphone, watch, modelT, saturnV];
+/** The switcher's shelves. */
+export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
+  { name: '基础机构', machines: [jack, vise, valve, pump] },
+  { name: '动力', machines: [ice, engine] },
+  { name: '整机', machines: [iphone, watch, modelT, saturnV] },
+];
+
+export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
 
 /** Every assembly, including subassemblies reached only by opening a part. */
 const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS];
 
 export const allMachines = () => ALL;
+export const hasMachine = (id: string) => ALL.some((m) => m.id === id);
 
 export function machineById(id: string): MachineDef {
   return ALL.find((m) => m.id === id) ?? MACHINES[0];

@@ -3,9 +3,9 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { PartsLegend, PlateMeta, TitleColumn } from './components/Plate';
-import { currentMachine, useMachine } from './machines';
+import { currentMachine, hasMachine, useMachine } from './machines';
 import { CameraRig, Guides, InkRenderer, MotionDriver } from './scene';
-import { useStudio } from './state';
+import { selectMachine, useStudio } from './state';
 import { bridge, exportPlate, recordTeardown } from './export';
 import { DrawingRig } from './drawing/DrawingRig';
 import { DrawingSheet } from './drawing/Sheet';
@@ -38,6 +38,39 @@ function ExportBridge() {
   return null;
 }
 
+/**
+ * The address bar follows the assembly and the selected part (#model-t/engine/crank),
+ * so a view can be shared; opening such a link goes straight there.
+ */
+function useDeepLink() {
+  useEffect(() => {
+    const open = () => {
+      const parts = decodeURIComponent(window.location.hash.slice(1)).split('/');
+      // Assembly ids themselves contain slashes: take the longest prefix that names one.
+      for (let n = parts.length; n > 0; n -= 1) {
+        const id = parts.slice(0, n).join('/');
+        if (hasMachine(id)) {
+          selectMachine(id);
+          const part = parts[n];
+          if (part && currentMachine().parts.some((p) => p.id === part)) useStudio.getState().set({ selected: part });
+          return;
+        }
+      }
+    };
+    open();
+    window.addEventListener('hashchange', open);
+    const unsubscribe = useStudio.subscribe((s, prev) => {
+      if (s.machineId === prev.machineId && s.selected === prev.selected) return;
+      const hash = `#${s.machineId}${s.selected ? `/${s.selected}` : ''}`;
+      if (window.location.hash !== hash) window.history.replaceState(null, '', hash);
+    });
+    return () => {
+      window.removeEventListener('hashchange', open);
+      unsubscribe();
+    };
+  }, []);
+}
+
 /** Horizontal offset (px) of the projection centre, so the machine clears the text column. */
 function useStageShift() {
   const [shift, setShift] = useState(0);
@@ -52,6 +85,7 @@ function useStageShift() {
 
 export default function App() {
   const shift = useStageShift();
+  useDeepLink();
   const clear = useStudio((s) => s.set);
   const machine = useMachine();
   const { Model, Driver, Backdrop } = machine;
