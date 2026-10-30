@@ -91,6 +91,23 @@ export function clearEdits(id?: string) {
   useStudio.setState((s) => ({ editNonce: s.editNonce + 1 }));
 }
 
+/**
+ * Put everything back as it was when the machine was opened: reassembled,
+ * no edits, no section, default view and switches, first study step.
+ */
+export function restoreAll(first: { state: { running: boolean; select: string | null; focus: string | null }; apply?: () => void }) {
+  partEdits.clear();
+  motion.localPart = null;
+  motion.local = 0;
+  first.apply?.();
+  useStudio.setState((s) => ({
+    explode: 0, deep: false, section: false, running: first.state.running, view: 'perspective', focus: first.state.focus,
+    viewNonce: s.viewNonce + 1, selected: first.state.select, hovered: null, localExplode: null, step: 0, moveMode: false,
+    labels: typeof window === 'undefined' || window.innerWidth >= 700, hiddenLines: true, projection: true, editNonce: s.editNonce + 1,
+  }));
+  document.body.style.cursor = '';
+}
+
 /** Switch machine: reset the study state and let the new machine assemble itself. */
 export function selectMachine(id: string) {
   const { viewNonce, machineId } = useStudio.getState();

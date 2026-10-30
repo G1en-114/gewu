@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { lineage, MACHINES, machineById, useMachine } from '../machines';
-import { clearEdits, editOf, partEdits, selectMachine, useStudio, type ViewMode } from '../state';
+import { clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -108,6 +108,7 @@ const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['drawing',
 
 export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'plate' | 'video' | 'json') => void; busy: boolean; recording: number | null }) {
   const { view, viewNonce, set } = useStudio();
+  const machine = useMachine();
   return (
     <nav className="plate-meta" aria-label="视图">
       <div className="views">
@@ -124,6 +125,9 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
         }}
       >
         复位
+      </button>
+      <button type="button" onClick={() => restoreAll(machine.steps[0])} title="合拢所有零件，撤销挪动和缩放，关掉剖视、挪动、全部展开，回到第一步和默认视角">
+        完全恢复
       </button>
       <button type="button" disabled={busy} onClick={() => onExport('plate')} title="A4 横版爆炸图：编号气泡、明细表、标题栏">图版 ↓</button>
       <button type="button" disabled={busy} onClick={() => onExport('video')} title="录制整机 → 拆开 → 合拢（WebM）" className={recording !== null ? 'is-recording' : ''}>
