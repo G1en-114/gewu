@@ -1,9 +1,11 @@
+import { useRef, type ReactNode } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import type { PartDef, StepDef, Vec3 } from '../types';
 import { Box, Cyl, Hoop, level, Pipe, Plate, poly, Rod, roundFrame, Turn, XY_Z, XZ_Y, YZ_X } from '../kit';
-import { Engine } from './engine';
+import { Engine, EngineDriver, engineMotion } from './engine';
 import { FrontAxle } from './frontAxle';
 import { RearAxle } from './rearAxle';
 import { Wheel } from './wheel';
@@ -76,6 +78,16 @@ function SteeringWheel() {
   );
 }
 
+/** High gear is 1 : 1 through the transmission; the rear axle reduces 40 : 11. */
+const AXLE_RATIO = 40 / 11;
+
+/** A wheel turning with the engine (about its own axle, the wheel's local x). */
+function Rolling({ side, children }: { side: number; children: ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(() => { if (ref.current) ref.current.rotation.x = (side * engineMotion.theta) / AXLE_RATIO; });
+  return <group ref={ref}>{children}</group>;
+}
+
 export function ModelT() {
   return (
     <group>
@@ -105,7 +117,7 @@ export function ModelT() {
       </Part>
       {([['wheel-fl', 0, -1], ['wheel-fr', 0, 1], ['wheel-rl', -WHEELBASE, -1], ['wheel-rr', -WHEELBASE, 1]] as const).map(([id, x, s]) => (
         <Part key={id} id={id}>
-          <group position={[x, AXLE_Y, s * TRACK]} rotation={[0, -s * (Math.PI / 2), 0]}><Wheel /></group>
+          <group position={[x, AXLE_Y, s * TRACK]} rotation={[0, -s * (Math.PI / 2), 0]}><Rolling side={s}><Wheel /></Rolling></group>
           <Callout id={id} p={[x, AXLE_Y + 15, s * (TRACK + 2)]} />
         </Part>
       ))}
@@ -234,7 +246,7 @@ const PARTS: PartDef[] = PARTS_RAW.map((p, i) => ({ ...p, index: i + 1 }));
 const STEPS: StepDef[] = [
   {
     title: '整车', en: 'Touring Car',
-    body: 'T 型车（1908–1927）共造了约 1500 万辆，是第一款流水线大量生产的汽车。轴距 100 英寸，轮距 56 英寸，约 20 马力，最高约 70 km/h。',
+    body: 'T 型车（1908–1927）共造了约 1500 万辆，是第一款流水线大量生产的汽车。轴距 100 英寸，轮距 56 英寸，约 20 马力，最高约 70 km/h。点“运转”能看到发动机在车里转，车轮按 3.64 : 1 跟着滚。',
     state: { explode: 0, section: false, running: false, select: null, focus: null },
   },
   {
@@ -289,5 +301,6 @@ export const carLevel = level({
   steps: STEPS,
   camera: { target: [-52, 26, 0], offset: [120, 110, 260], orthoDistance: 950, exploded: { target: [-50, 40, 0], scale: 1.6 }, deep: { target: [-20, 25, 100], scale: 2.35 } },
   Model: ModelT,
+  Driver: EngineDriver,
 });
 
