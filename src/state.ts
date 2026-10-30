@@ -26,6 +26,9 @@ export interface StudioState {
   moveMode: boolean;
   /** Explode the whole tree: subassemblies come out beside the machine and come apart too. */
   deep: boolean;
+  /** Parts put out of sight, and the one part shown on its own. */
+  hidden: string[];
+  solo: string | null;
   /** Bumped when a part's size or position is edited from the UI. */
   editNonce: number;
   set: (patch: Partial<Omit<StudioState, 'set'>>) => void;
@@ -48,6 +51,8 @@ export const useStudio = create<StudioState>((set) => ({
   projection: true,
   moveMode: false,
   deep: false,
+  hidden: [],
+  solo: null,
   editNonce: 0,
   set: (patch) => set(patch),
 }));
@@ -103,9 +108,15 @@ export function restoreAll(first: { state: { running: boolean; select: string | 
   useStudio.setState((s) => ({
     explode: 0, deep: false, section: false, running: first.state.running, view: 'perspective', focus: first.state.focus,
     viewNonce: s.viewNonce + 1, selected: first.state.select, hovered: null, localExplode: null, step: 0, moveMode: false,
-    labels: typeof window === 'undefined' || window.innerWidth >= 700, hiddenLines: true, projection: true, editNonce: s.editNonce + 1,
+    labels: typeof window === 'undefined' || window.innerWidth >= 700, hiddenLines: true, projection: true, editNonce: s.editNonce + 1, hidden: [], solo: null,
   }));
   document.body.style.cursor = '';
+}
+
+/** Whether a part is drawn at all (hidden, or another part shown on its own). */
+export function partVisible(id: string) {
+  const { hidden, solo } = useStudio.getState();
+  return !hidden.includes(id) && (!solo || solo === id);
 }
 
 /** Switch machine: reset the study state and let the new machine assemble itself. */
@@ -119,6 +130,6 @@ export function selectMachine(id: string) {
   partEdits.clear();
   useStudio.getState().set({
     machineId: id, explode: 0, section: false, running: true, view: 'perspective', focus: null,
-    viewNonce: viewNonce + 1, selected: null, hovered: null, localExplode: null, step: 0, deep: false,
+    viewNonce: viewNonce + 1, selected: null, hovered: null, localExplode: null, step: 0, deep: false, hidden: [], solo: null,
   });
 }

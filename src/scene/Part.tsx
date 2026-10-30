@@ -3,7 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { machineById } from '../machines';
 import type { MachineDef } from '../machines/types';
-import { editOf, partEdits, useStudio } from '../state';
+import { editOf, partEdits, partVisible, useStudio } from '../state';
 import { createInkMaterial } from './ink';
 import { deepProgress, partDef, partOffset } from './explode';
 
@@ -91,6 +91,7 @@ function PartBody({ id, tone, children }: { id: string; tone: number; children: 
     const { selected, hovered } = useStudio.getState();
     const g = group.current;
     if (g) {
+      g.visible = partVisible(id);
       partOffset(id, g.position);
       const s = partEdits.get(id)?.scale ?? 1;
       if (s !== 1 && !centre.current && g.parent) {
@@ -112,6 +113,8 @@ function PartBody({ id, tone, children }: { id: string; tone: number; children: 
   });
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
+    // A hidden part lets the pointer through to whatever is behind it.
+    if (!partVisible(id)) return;
     event.stopPropagation();
     if (event.delta > 4) return;
     select({ selected: useStudio.getState().selected === id ? null : id });
@@ -120,7 +123,7 @@ function PartBody({ id, tone, children }: { id: string; tone: number; children: 
   // Move mode: drag the part in the plane facing the camera.
   const onPointerDown = (event: ThreeEvent<PointerEvent>) => {
     const { moveMode, view } = useStudio.getState();
-    if (!moveMode || view === 'drawing') return;
+    if (!moveMode || view === 'drawing' || !partVisible(id)) return;
     event.stopPropagation();
     try { (event.target as Element).setPointerCapture(event.pointerId); } catch { /* synthetic pointer */ }
     const normal = camera.getWorldDirection(new THREE.Vector3()).negate();
@@ -163,11 +166,13 @@ function PartBody({ id, tone, children }: { id: string; tone: number; children: 
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
           onDoubleClick={(event) => {
+            if (!partVisible(id)) return;
             event.stopPropagation();
             const { localExplode } = useStudio.getState();
             select({ selected: id, localExplode: localExplode === id ? null : id, explode: 0 });
           }}
           onPointerOver={(event) => {
+            if (!partVisible(id)) return;
             event.stopPropagation();
             select({ hovered: id });
             document.body.style.cursor = useStudio.getState().moveMode ? 'grab' : 'pointer';

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { lineage, MACHINES, machineById, useMachine } from '../machines';
+import type { MachineDef } from '../machines/types';
 import { clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function TitleColumn() {
   const machine = useMachine();
-  const { step, explode, running, section, labels, view, hiddenLines, projection, moveMode, deep, set } = useStudio();
+  const { step, explode, running, section, labels, view, hiddenLines, projection, moveMode, deep, hidden, solo, set } = useStudio();
   const drawingMode = view === 'drawing';
   const { Controls, Toggles } = machine;
   const chain = lineage(machine);
@@ -72,6 +73,7 @@ export function TitleColumn() {
           <input type="range" min={0} max={1} step={0.01} value={explode} onChange={(e) => set({ explode: Number(e.target.value) })} />
           <output>{Math.round(explode * 100)}%</output>
         </label>
+        <Stepper machine={machine} explode={explode} />
         {Controls && <Controls />}
         <div className="toggles">
           <button type="button" className={running ? 'is-on' : ''} onClick={() => set({ running: !running })}>{running ? '暂停' : '运转'}</button>
@@ -86,6 +88,11 @@ export function TitleColumn() {
             <>
               <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
               <button type="button" className={moveMode ? 'is-on' : ''} onClick={() => set({ moveMode: !moveMode })} title="拖动零件挪到别处（视角暂停转动）">挪动</button>
+              {(hidden.length > 0 || solo) && (
+                <button type="button" className="is-on" onClick={() => set({ hidden: [], solo: null })} title="把隐藏的零件都显示出来">
+                  显示全部{hidden.length > 0 ? ` (${hidden.length})` : ''}
+                </button>
+              )}
               {machine.children && (
                 <button
                   type="button"
@@ -138,6 +145,47 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
   );
 }
 
+/** The teardown as discrete steps: each step ends where some part (or set of screws) is off. */
+function teardownStops(machine: MachineDef) {
+  const stops = new Map<number, { at: number; ids: string[]; labels: string[] }>();
+  const add = (end: number, label: string, id?: string) => {
+    const key = Math.round(end * 1000);
+    const stop = stops.get(key) ?? { at: end, ids: [], labels: [] };
+    stop.labels.push(label);
+    if (id) stop.ids.push(id);
+    stops.set(key, stop);
+  };
+  for (const [id, set] of Object.entries(machine.boltSets)) {
+    if (set.stage[1] > set.stage[0]) add(set.stage[1], `${machine.parts.find((p) => p.id === set.owner)?.name ?? ''}的螺钉`);
+  }
+  for (const p of machine.parts) if (p.stage[1] > p.stage[0]) add(p.stage[1], p.name, p.id);
+  return [...stops.values()].sort((a, b) => a.at - b.at);
+}
+
+/** Step through the teardown one part at a time. */
+function Stepper({ machine, explode }: { machine: MachineDef; explode: number }) {
+  const set = useStudio((s) => s.set);
+  const stops = useMemo(() => teardownStops(machine), [machine]);
+  if (stops.length === 0) return null;
+  const done = stops.filter((s) => s.at <= explode + 1e-4).length;
+  const go = (n: number) => {
+    const target = n <= 0 ? 0 : stops[Math.min(n, stops.length) - 1].at;
+    const next = stops[n - 1];
+    set({ explode: target, localExplode: null, deep: false, selected: next?.ids[0] ?? null });
+  };
+  const current = done > 0 ? stops[done - 1] : null;
+  return (
+    <div className="stepper">
+      <button type="button" disabled={done === 0} onClick={() => go(done - 1)} aria-label="上一步">‹</button>
+      <p>
+        <span className="stepper-count">{pad(done)} / {pad(stops.length)}</span>
+        {current ? `拆下 ${current.labels.join('、')}` : '完整装配 · 按 › 逐步拆开'}
+      </p>
+      <button type="button" disabled={done === stops.length} onClick={() => go(done + 1)} aria-label="下一步">›</button>
+    </div>
+  );
+}
+
 /** Size slider for the selected part, plus a button to undo its moves and resizing. */
 function PartSize({ id }: { id: string }) {
   const nonce = useStudio((s) => s.editNonce);
@@ -168,7 +216,7 @@ function PartSize({ id }: { id: string }) {
 
 export function PartsLegend() {
   const machine = useMachine();
-  const { selected, hovered, localExplode, view, set } = useStudio();
+  const { selected, hovered, localExplode, view, hidden, solo, set } = useStudio();
   const focus = selected ?? hovered;
   const part = focus ? machine.parts.find((p) => p.id === focus) : undefined;
   const child = part && machine.children?.[part.id];
@@ -191,6 +239,12 @@ export function PartsLegend() {
           </div>
           <p className="caption-body">{part.description}</p>
           {selected && view !== 'drawing' && <PartSize id={selected} />}
+          {selected && view !== 'drawing' && (
+            <div className="caption-tools">
+              <button type="button" className="caption-action" onClick={() => set({ hidden: [...hidden, selected], selected: null, solo: solo === selected ? null : solo })}>隐藏</button>
+              <button type="button" className="caption-action" onClick={() => set({ solo: solo === selected ? null : selected })}>{solo === selected ? '显示全部' : '只看它'}</button>
+            </div>
+          )}
           {child && (
             <button type="button" className="caption-open" onClick={() => selectMachine(child)}>
               拆开此组件：{machineById(child).summary} <span aria-hidden="true">↘</span>
@@ -212,8 +266,10 @@ export function PartsLegend() {
           {machine.parts.map((item) => (
             <tr
               key={item.id}
-              className={`${selected === item.id ? 'is-selected' : ''}${hovered === item.id ? ' is-hovered' : ''}`}
-              onClick={() => set({ selected: selected === item.id ? null : item.id })}
+              className={`${selected === item.id ? 'is-selected' : ''}${hovered === item.id ? ' is-hovered' : ''}${hidden.includes(item.id) || (solo && solo !== item.id) ? ' is-hidden' : ''}`}
+              onClick={() => hidden.includes(item.id)
+                ? set({ hidden: hidden.filter((h) => h !== item.id), selected: item.id })
+                : set({ selected: selected === item.id ? null : item.id })}
               onPointerEnter={() => set({ hovered: item.id })}
               onPointerLeave={() => set({ hovered: null })}
             >

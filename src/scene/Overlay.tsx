@@ -4,7 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMachine } from '../machines';
 import type { GuideDef, Vec3 } from '../machines/types';
-import { motion, useStudio, type ViewMode } from '../state';
+import { motion, partVisible, useStudio, type ViewMode } from '../state';
 import { OVERLAY_LAYER } from './InkRenderer';
 import { PALETTE } from './ink';
 import { SECTION_PLANE, usePartDepth } from './Part';
@@ -19,7 +19,8 @@ export function Callout({ id, p }: { id: string; p: Vec3 }) {
   const drawingMode = useStudio((s) => s.view === 'drawing');
   const set = useStudio((s) => s.set);
   const nested = usePartDepth() > 1;
-  if (!part || nested || drawingMode || (!labels && !selected && !hovered)) return null;
+  const shown = useStudio((s) => !s.hidden.includes(id) && (!s.solo || s.solo === id));
+  if (!part || nested || !shown || drawingMode || (!labels && !selected && !hovered)) return null;
   return (
     <Html position={p} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
       <div className={`callout${selected ? ' is-selected' : ''}${hovered ? ' is-hovered' : ''}`}>
@@ -105,6 +106,8 @@ export function Guides() {
     const unit = machine.unit ?? 1;
     machine.guides.forEach((g, i) => {
       const d = guideOffset(g, scratch).multiplyScalar(unit);
+      // No guide for a part that is out of sight.
+      if (!partVisible(boltSetDef(g.stage)?.owner ?? g.stage)) d.set(0, 0, 0);
       if (d.lengthSq() > 1e-4) any = true;
       const [x, y, z] = g.origin;
       attr.setXYZ(i * 2, x, y, z);
