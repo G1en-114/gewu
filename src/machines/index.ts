@@ -10,6 +10,7 @@ import { motor } from './motor';
 import { pen } from './pen';
 import { piano } from './piano';
 import { rotor } from './rotor';
+import { steering } from './steering';
 import { stirling } from './stirling';
 import { lock } from './lock';
 import { MODEL_T_LEVELS, modelT } from './model-t';
@@ -27,7 +28,7 @@ import type { MachineDef } from './types';
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen, micrometer] },
-  { name: '动力', machines: [motor, ice, stirling, engine, turbofan, gearbox, wind] },
+  { name: '动力', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, wind] },
   { name: '整机', machines: [iphone, watch, piano, rotor, bicycle, excavator, modelT, saturnV] },
 ];
 
