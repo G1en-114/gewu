@@ -89,4 +89,10 @@ export interface MachineDef {
   Toggles?: ComponentType;
   /** Faint orthographic drawings behind the plate. */
   Backdrop?: ComponentType;
+  /** Model units → scene units (the model is drawn inside a group of this scale). */
+  unit?: number;
+  /** For a subassembly: the assembly it belongs to. */
+  parent?: string;
+  /** Parts that are subassemblies in their own right: part id → machine id. */
+  children?: Record<string, string>;
 }

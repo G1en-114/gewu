@@ -110,6 +110,11 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .subject { margin-top: 16px; }
 .subject h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.12em; }
 .subject p { margin: 4px 0 0; font: italic 500 15px var(--serif-en); color: var(--ink-2); letter-spacing: 0.02em; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin-bottom: 6px; font-size: 12px; letter-spacing: 0.12em; color: var(--ink-3); }
+.crumbs button { color: var(--rust); letter-spacing: inherit; }
+.crumbs button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.crumbs button::after, .crumbs span::before { color: var(--ink-3); }
+.crumbs button::after { content: '›'; margin: 0 7px; }
 
 .steps { list-style: none; margin: 18px 0 0; padding: 0; border-top: 1px solid var(--hair); }
 .steps li { border-bottom: 1px solid var(--hair); }
@@ -237,6 +242,9 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .caption-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .caption-action { font-size: 12px; letter-spacing: 0.16em; color: var(--rust); white-space: nowrap; }
 .caption-action:hover { text-decoration: underline; text-underline-offset: 3px; }
+.caption-open { display: block; width: 100%; margin: 10px 0 2px; padding: 7px 10px; border: 1px solid var(--rust); text-align: left; font-size: 12.5px; letter-spacing: 0.1em; color: var(--rust); background: rgba(168, 67, 47, 0.05); }
+.caption-open:hover { background: rgba(168, 67, 47, 0.12); }
+.parts .has-child { color: var(--rust); }
 
 .parts { width: 100%; border-collapse: collapse; font-size: 12px; background: rgba(244, 240, 231, 0.82); }
 .parts caption { text-align: left; padding-bottom: 6px; font: 500 12px var(--serif-en); letter-spacing: 0.18em; color: var(--ink-3); }

@@ -86,7 +86,9 @@ export default function App() {
         >
           <MotionDriver />
           {Driver && <Driver key={`driver-${machine.id}`} />}
-          <Model key={machine.id} />
+          <group key={machine.id} scale={machine.unit ?? 1}>
+            <Model />
+          </group>
           <Guides />
           <OrbitControls makeDefault enabled={!drawingMode} enablePan={false} minDistance={3} maxDistance={160} maxPolarAngle={Math.PI * 0.49} enableDamping dampingFactor={0.08} />
           <CameraRig shift={shift} />

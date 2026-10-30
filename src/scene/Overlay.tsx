@@ -7,7 +7,7 @@ import type { GuideDef, Vec3 } from '../machines/types';
 import { motion, useStudio, type ViewMode } from '../state';
 import { OVERLAY_LAYER } from './InkRenderer';
 import { PALETTE } from './ink';
-import { SECTION_PLANE } from './Part';
+import { SECTION_PLANE, usePartDepth } from './Part';
 import { boltSetDef, partDef, partOffset, stageProgress } from './explode';
 
 /** Numbered balloon with a short curved leader, in the style of a drawing plate. */
@@ -18,7 +18,8 @@ export function Callout({ id, p }: { id: string; p: Vec3 }) {
   const labels = useStudio((s) => s.labels);
   const drawingMode = useStudio((s) => s.view === 'drawing');
   const set = useStudio((s) => s.set);
-  if (!part || drawingMode || (!labels && !selected && !hovered)) return null;
+  const nested = usePartDepth() > 1;
+  if (!part || nested || drawingMode || (!labels && !selected && !hovered)) return null;
   return (
     <Html position={p} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
       <div className={`callout${selected ? ' is-selected' : ''}${hovered ? ' is-hovered' : ''}`}>
@@ -101,8 +102,9 @@ export function Guides() {
     const { explodeLines } = objects;
     const attr = explodeLines.geometry.getAttribute('position') as THREE.BufferAttribute;
     let any = false;
+    const unit = machine.unit ?? 1;
     machine.guides.forEach((g, i) => {
-      const d = guideOffset(g, scratch);
+      const d = guideOffset(g, scratch).multiplyScalar(unit);
       if (d.lengthSq() > 1e-4) any = true;
       const [x, y, z] = g.origin;
       attr.setXYZ(i * 2, x, y, z);

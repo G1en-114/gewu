@@ -14,8 +14,26 @@ interface PartMaterials {
 }
 
 const PartContext = createContext<PartMaterials | null>(null);
+/** How deep in Parts we are: a subassembly drawn inside a part of its parent is depth 2 and below. */
+const DepthContext = createContext(0);
 
+export const usePartDepth = () => useContext(DepthContext);
+
+/**
+ * One part of the current assembly. Inside another part (a subassembly drawn
+ * whole within its parent) it is just geometry in its parent's ink.
+ */
 export function Part({ id, tone = 1, children }: { id: string; tone?: number; children: ReactNode }) {
+  const depth = useContext(DepthContext);
+  if (depth > 0) return <DepthContext.Provider value={depth + 1}>{children}</DepthContext.Provider>;
+  return (
+    <DepthContext.Provider value={1}>
+      <PartBody id={id} tone={tone}>{children}</PartBody>
+    </DepthContext.Provider>
+  );
+}
+
+function PartBody({ id, tone, children }: { id: string; tone: number; children: ReactNode }) {
   const index = partDef(id)?.index ?? 31;
   const group = useRef<THREE.Group>(null);
   const materials = useMemo<PartMaterials>(() => {

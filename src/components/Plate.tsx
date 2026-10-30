@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { MACHINES, useMachine } from '../machines';
+import { lineage, MACHINES, machineById, useMachine } from '../machines';
 import { selectMachine, useStudio, type ViewMode } from '../state';
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -9,6 +9,8 @@ export function TitleColumn() {
   const { step, explode, running, section, labels, view, hiddenLines, projection, set } = useStudio();
   const drawingMode = view === 'drawing';
   const { Controls, Toggles } = machine;
+  const chain = lineage(machine);
+  const root = chain[0];
 
   const goStep = (index: number) => {
     const { state, apply } = machine.steps[index];
@@ -27,18 +29,26 @@ export function TitleColumn() {
         <div className="mast-rule" />
         <p className="mast-en">MECHANISM STUDIO</p>
         <p className="mast-zh">工程制图 · 交互拆解</p>
-        <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(machine) + 1)}</span><i /></div>
+        <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(root) + 1)}{chain.length > 1 ? `-${chain.length - 1}` : ''}</span><i /></div>
       </header>
 
       <nav className="machines" aria-label="选择机器">
         {MACHINES.map((m) => (
-          <button key={m.id} type="button" className={m.id === machine.id ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
+          <button key={m.id} type="button" className={m.id === root.id ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
             {m.name}
           </button>
         ))}
       </nav>
 
       <div className="subject">
+        {chain.length > 1 && (
+          <nav className="crumbs" aria-label="所在组件">
+            {chain.slice(0, -1).map((m) => (
+              <button key={m.id} type="button" onClick={() => selectMachine(m.id)}>{m.name}</button>
+            ))}
+            <span>{machine.name}</span>
+          </nav>
+        )}
         <h2>{machine.name}</h2>
         <p>{machine.en} · {machine.subtitle}</p>
       </div>
@@ -108,6 +118,7 @@ export function PartsLegend() {
   const { selected, hovered, localExplode, set } = useStudio();
   const focus = selected ?? hovered;
   const part = focus ? machine.parts.find((p) => p.id === focus) : undefined;
+  const child = part && machine.children?.[part.id];
   // A local explode follows the selection, and folds away when nothing is selected.
   useEffect(() => {
     const { localExplode: current } = useStudio.getState();
@@ -126,6 +137,11 @@ export function PartsLegend() {
             {selected && <button type="button" className="caption-close" onClick={() => set({ selected: null })} aria-label="取消选择">×</button>}
           </div>
           <p className="caption-body">{part.description}</p>
+          {child && (
+            <button type="button" className="caption-open" onClick={() => selectMachine(child)}>
+              拆开此组件：{machineById(child).summary} <span aria-hidden="true">↘</span>
+            </button>
+          )}
           <div className="caption-foot">
             <p className="caption-mat">{part.material}</p>
             {selected && (
@@ -148,7 +164,7 @@ export function PartsLegend() {
               onPointerLeave={() => set({ hovered: null })}
             >
               <td className="num">{pad(item.index)}</td>
-              <td>{item.name}</td>
+              <td>{item.name}{machine.children?.[item.id] && <span className="has-child" title="可继续拆开"> ▸</span>}</td>
               <td className="en">{item.en}</td>
             </tr>
           ))}

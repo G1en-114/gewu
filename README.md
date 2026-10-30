@@ -15,8 +15,9 @@
 - **四冲程汽油机**（`src/machines/ice`）：15 种零件，依 Joe Webster 的公开图纸（Webster Engine Works 4 Cycle Gas Engine，非营利用途可自由使用）按原尺寸（英寸）建模；曲柄连杆、2:1 正时齿轮、凸轮摇臂顶开排气门、自动进气门；左栏显示进气 / 压缩 / 做功 / 排气。
 - **卧式单缸蒸汽机**（`src/machines/engine`）：13 个零件，曲柄连杆、配汽机构、离心调速反馈。
 - **智能手机**（`src/machines/iphone`）：iPhone 15，21 种零件按 Apple 维修手册爆炸图编号，附各组螺钉；外形依 Apple 公开的配件尺寸图，内部布局按维修手册的内部视图、爆炸图和螺钉图估读（毫米）。拆解顺序照维修手册：卡托 → 后盖 → 护盖 → 摄像头 → 电池 → … → 屏幕。不含 Apple 标志。
+- **T 型车**（`src/machines/model-t`）：福特 Model T 旅行车（1917–25），**逐级拆解**：整车 16 个大件 → 动力总成（17 件）/ 前桥 / 后桥 / 车轮 → 活塞连杆组、行星变速器、差速器，最深三级。依公开规格（轴距 100、轮距 56、缸径 3¾ × 行程 4、30 英寸车轮）按英寸建模；福特原厂图纸由 The Henry Ford 档案馆数字化收藏。
 
-新增机器：在 `src/machines/<id>/` 提供 `MachineDef`（零件表、拆解时序、讲解步骤、镜头、包围盒、模型组件），并在 `src/machines/index.ts` 注册。
+新增机器：在 `src/machines/<id>/` 提供 `MachineDef`（子组件另设 `parent`，父级用 `children` 把零件映射到子组件；`unit` 让每一级按自己的比例显示）（零件表、拆解时序、讲解步骤、镜头、包围盒、模型组件），并在 `src/machines/index.ts` 注册。
 
 ## 两种模式
 
