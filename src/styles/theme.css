@@ -82,6 +82,9 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   pointer-events: none;
 }
 .title-column > * { pointer-events: auto; }
+.title-column { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.title-column::-webkit-scrollbar { display: none; }
+.title-column > * { flex-shrink: 0; }
 
 .mast-title {
   margin: 0;
@@ -172,6 +175,10 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .strokes { display: flex; align-items: center; gap: 6px; padding-left: 50px; font-size: 12px; letter-spacing: 0.12em; color: var(--ink-3); }
 .strokes span { padding: 2px 7px; border: 1px solid var(--hair); transition: color 0.15s, border-color 0.15s, background 0.15s; }
 .strokes span.is-on { color: var(--paper-hi); background: var(--rust); border-color: var(--rust); }
+.strokes button { padding: 2px 8px; border: 1px solid var(--hair); font-size: 12px; letter-spacing: 0.12em; color: var(--ink-3); transition: color 0.15s, border-color 0.15s, background 0.15s; }
+.strokes button:hover { color: var(--ink); border-color: var(--hair-strong); }
+.strokes button.is-on { color: var(--paper-hi); background: var(--rust); border-color: var(--rust); }
+.gear-note { margin: 2px 0 0; padding-left: 50px; font-size: 12px; line-height: 1.6; letter-spacing: 0.06em; color: var(--ink-2); }
 .strokes b { margin-left: auto; font: 600 13px var(--serif-en); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
 .toggles { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; padding-left: 50px; }
 .toggles button { white-space: nowrap; }
@@ -407,4 +414,14 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .sheet-title-name { font-size: 14px; font-weight: 600; letter-spacing: 0.06em; width: 50%; white-space: nowrap; }
 @media (max-width: 1099px) {
   .sheet-title { display: none; }
+}
+
+/* Short desktop screens: a smaller masthead leaves room for the study controls. */
+@media (min-width: 1101px) and (max-height: 980px) {
+  .mast-title { font-size: 60px; }
+  .steps { margin-top: 12px; }
+  .steps button { padding-top: 7px; padding-bottom: 7px; }
+  .mast-rule { margin: 12px 0 8px; }
+  .mast-en { font-size: 19px; }
+  .mast-zh { display: none; }
 }
