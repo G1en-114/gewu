@@ -2,6 +2,7 @@ import { useStudio } from '../state';
 import { engine } from './engine';
 import { ice } from './ice';
 import { iphone } from './iphone';
+import { lock } from './lock';
 import { MODEL_T_LEVELS, modelT } from './model-t';
 import { SATURN_V_LEVELS, saturnV } from './saturn-v';
 import { turbofan } from './turbofan';
@@ -15,7 +16,7 @@ import type { MachineDef } from './types';
 /** Machines in the order the switcher lists them. */
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
-  { name: '基础机构', machines: [jack, vise, valve, pump] },
+  { name: '基础机构', machines: [jack, vise, valve, pump, lock] },
   { name: '动力', machines: [ice, engine, turbofan] },
   { name: '整机', machines: [iphone, watch, modelT, saturnV] },
 ];
