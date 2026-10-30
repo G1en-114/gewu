@@ -7,6 +7,7 @@ import { gearbox } from './gearbox';
 import { iphone } from './iphone';
 import { motor } from './motor';
 import { pen } from './pen';
+import { piano } from './piano';
 import { stirling } from './stirling';
 import { lock } from './lock';
 import { MODEL_T_LEVELS, modelT } from './model-t';
@@ -25,7 +26,7 @@ import type { MachineDef } from './types';
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, lock, pen] },
   { name: '动力', machines: [motor, ice, stirling, engine, turbofan, gearbox, wind] },
-  { name: '整机', machines: [iphone, watch, bicycle, excavator, modelT, saturnV] },
+  { name: '整机', machines: [iphone, watch, piano, bicycle, excavator, modelT, saturnV] },
 ];
 
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
