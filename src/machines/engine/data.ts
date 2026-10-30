@@ -134,10 +134,10 @@ function guides(): GuideDef[] {
 
 export const GUIDES = guides();
 
-export const CENTRE_LINES: Array<[Vec3, Vec3]> = [
-  [[-6.9, AX, 0], [2.6, AX, 0]],
-  [[CX, AX, 0.8], [CX, AX, -3.1]],
-  [[ENGINE.governor[0], 0.2, ENGINE.governor[2]], [ENGINE.governor[0], 5.6, ENGINE.governor[2]]],
+export const CENTRE_LINES: Array<[Vec3, Vec3, number?]> = [
+  [[-6.9, AX, 0], [2.6, AX, 0], 0.84],
+  [[CX, AX, 0.8], [CX, AX, -3.1], ENGINE.flywheelRadius],
+  [[ENGINE.governor[0], 0.2, ENGINE.governor[2]], [ENGINE.governor[0], 5.6, ENGINE.governor[2]], 0.24],
 ];
 
 const setLoad = (load: number) => () => useEngine.getState().set({ load, governor: true });

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewMode = 'perspective' | 'elevation' | 'plan';
+export type ViewMode = 'perspective' | 'elevation' | 'plan' | 'drawing';
 
 export interface StudioState {
   machineId: string;
@@ -19,6 +19,9 @@ export interface StudioState {
   step: number;
   /** Show numbered balloons for every part. */
   labels: boolean;
+  /** Drawing mode: dashed hidden outlines, and projection lines for the selected part. */
+  hiddenLines: boolean;
+  projection: boolean;
   set: (patch: Partial<Omit<StudioState, 'set'>>) => void;
 }
 
@@ -35,6 +38,8 @@ export const useStudio = create<StudioState>((set) => ({
   localExplode: null,
   step: 0,
   labels: typeof window === 'undefined' || window.innerWidth >= 700,
+  hiddenLines: true,
+  projection: true,
   set: (patch) => set(patch),
 }));
 

@@ -57,6 +57,8 @@ export interface CameraDef {
 
 export interface MachineDef {
   id: string;
+  /** Assembled bounding box [min, max], used to lay out the three views. */
+  bounds: [Vec3, Vec3];
   name: string;
   en: string;
   subtitle: string;
@@ -69,8 +71,12 @@ export interface MachineDef {
   /** What comes apart when one part is opened on its own (local explode). */
   neighbours: Record<string, string[]>;
   guides: GuideDef[];
-  /** Dash-dot axis lines drawn over the model. */
-  centreLines: Array<[Vec3, Vec3]>;
+  /**
+   * Dash-dot axis lines drawn over the model. The optional radius marks a
+   * revolved feature: where the axis points at a view, that view gets a
+   * centre cross of that size (圆的十字中心线).
+   */
+  centreLines: Array<[Vec3, Vec3, number?]>;
   steps: StepDef[];
   camera: CameraDef;
   /** The model, rendered inside the R3F canvas. */

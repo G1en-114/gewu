@@ -6,7 +6,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 export function TitleColumn() {
   const machine = useMachine();
-  const { step, explode, running, section, labels, set } = useStudio();
+  const { step, explode, running, section, labels, view, hiddenLines, projection, set } = useStudio();
+  const drawingMode = view === 'drawing';
   const { Controls, Toggles } = machine;
 
   const goStep = (index: number) => {
@@ -15,7 +16,7 @@ export function TitleColumn() {
     apply?.();
     set({
       localExplode: null, step: index, explode: state.explode, section: state.section, running: state.running,
-      selected: state.select, focus: state.focus, view: 'perspective', viewNonce: viewNonce + 1,
+      selected: state.select, focus: state.focus, view: drawingMode ? 'drawing' : 'perspective', viewNonce: viewNonce + 1,
     });
   };
 
@@ -66,14 +67,21 @@ export function TitleColumn() {
           <button type="button" className={running ? 'is-on' : ''} onClick={() => set({ running: !running })}>{running ? '暂停' : '运转'}</button>
           {Toggles && <Toggles />}
           <button type="button" className={section ? 'is-on' : ''} onClick={() => set({ section: !section })}>剖视</button>
-          <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
+          {drawingMode ? (
+            <>
+              <button type="button" className={hiddenLines ? 'is-on' : ''} onClick={() => set({ hiddenLines: !hiddenLines })} title="不可见轮廓线（细虚线）">虚线</button>
+              <button type="button" className={projection ? 'is-on' : ''} onClick={() => set({ projection: !projection })} title="长对正 · 高平齐 · 宽相等">投影</button>
+            </>
+          ) : (
+            <button type="button" className={labels ? 'is-on' : ''} onClick={() => set({ labels: !labels })}>标注</button>
+          )}
         </div>
       </div>
     </section>
   );
 }
 
-const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['elevation', '主视'], ['plan', '俯视']];
+const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['drawing', '三视图'], ['elevation', '主视'], ['plan', '俯视']];
 
 export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'plate' | 'video' | 'json') => void; busy: boolean; recording: number | null }) {
   const { view, viewNonce, set } = useStudio();

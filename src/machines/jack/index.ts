@@ -4,6 +4,7 @@ import { Jack, JackDriver } from './Model';
 
 export const jack: MachineDef = {
   id: 'jack',
+  bounds: [[-1.5, 0, -1.5], [1.5, 3.72, 1.5]],
   name: '螺旋千斤顶',
   en: 'Screw Jack',
   subtitle: '装配体 · 全剖视',

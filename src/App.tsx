@@ -7,6 +7,8 @@ import { currentMachine, useMachine } from './machines';
 import { CameraRig, Guides, InkRenderer, MotionDriver } from './scene';
 import { useStudio } from './state';
 import { bridge, exportPlate, recordTeardown } from './export';
+import { DrawingRig } from './drawing/DrawingRig';
+import { DrawingSheet } from './drawing/Sheet';
 import './styles/theme.css';
 
 function download(name: string, href: string) {
@@ -52,6 +54,7 @@ export default function App() {
   const clear = useStudio((s) => s.set);
   const machine = useMachine();
   const { Model, Driver, Backdrop } = machine;
+  const drawingMode = useStudio((s) => s.view === 'drawing');
   const [recording, setRecording] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const onExport = async (kind: 'plate' | 'video' | 'json') => {
@@ -67,7 +70,7 @@ export default function App() {
     }
   };
   return (
-    <div className="studio">
+    <div className={`studio${drawingMode ? ' is-drawing' : ''}`}>
       <div className="paper-drawings" aria-hidden="true">
         {Backdrop && <Backdrop />}
       </div>
@@ -78,22 +81,24 @@ export default function App() {
           gl={{ antialias: false, alpha: true, preserveDrawingBuffer: true, toneMapping: THREE.NoToneMapping }}
           linear
           flat
-          onPointerMissed={() => clear({ selected: null })}
+          onPointerMissed={() => { if (useStudio.getState().view !== 'drawing') clear({ selected: null }); }}
         >
           <MotionDriver />
           {Driver && <Driver key={`driver-${machine.id}`} />}
           <Model key={machine.id} />
           <Guides />
-          <OrbitControls makeDefault enablePan={false} minDistance={3} maxDistance={160} maxPolarAngle={Math.PI * 0.49} enableDamping dampingFactor={0.08} />
+          <OrbitControls makeDefault enabled={!drawingMode} enablePan={false} minDistance={3} maxDistance={160} maxPolarAngle={Math.PI * 0.49} enableDamping dampingFactor={0.08} />
           <CameraRig shift={shift} />
           <InkRenderer />
           <ExportBridge />
+          <DrawingRig />
         </Canvas>
+        <DrawingSheet />
       </div>
       <TitleColumn />
       <PlateMeta onExport={onExport} busy={busy} recording={recording} />
       <PartsLegend />
-      <p className="stage-hint">拖动旋转 · 滚轮缩放 · 点选零件</p>
+      <p className="stage-hint">{drawingMode ? '第一角画法 · 悬停或点选零件查看投影关系' : '拖动旋转 · 滚轮缩放 · 点选零件'}</p>
     </div>
   );
 }

@@ -16,8 +16,9 @@ export function Callout({ id, p }: { id: string; p: Vec3 }) {
   const selected = useStudio((s) => s.selected === id);
   const hovered = useStudio((s) => s.hovered === id);
   const labels = useStudio((s) => s.labels);
+  const drawingMode = useStudio((s) => s.view === 'drawing');
   const set = useStudio((s) => s.set);
-  if (!part || (!labels && !selected && !hovered)) return null;
+  if (!part || drawingMode || (!labels && !selected && !hovered)) return null;
   return (
     <Html position={p} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
       <div className={`callout${selected ? ' is-selected' : ''}${hovered ? ' is-hovered' : ''}`}>
@@ -194,11 +195,13 @@ export function CameraRig({ shift }: { shift: number }) {
     tw.t = Math.min(1, tw.t + dt / 1.1);
     const e = tw.t < 0.5 ? 4 * tw.t ** 3 : 1 - (-2 * tw.t + 2) ** 3 / 2;
     const { target, offset, orthoDistance, foci } = machine.camera;
-    const presets: Record<ViewMode, { offset: THREE.Vector3; fov: number }> = {
+    const presets: Record<Exclude<ViewMode, 'drawing'>, { offset: THREE.Vector3; fov: number }> = {
       perspective: { offset: v3(offset), fov: 30 },
       elevation: { offset: new THREE.Vector3(0, orthoDistance * 0.004, orthoDistance), fov: 13 },
       plan: { offset: new THREE.Vector3(0, orthoDistance, 0.02), fov: 13 },
     };
+    // Drawing mode renders its own orthographic cameras; the perspective one waits.
+    if (view === 'drawing') return;
     const preset = presets[view];
     // Fit the machine to narrow (portrait) viewports.
     const visibleWidth = Math.max(0.5, (size.width - shift * 2) / size.height);

@@ -7,6 +7,7 @@ import { Engine } from './Model';
 
 export const engine: MachineDef = {
   id: 'engine',
+  bounds: [[-5.65, -1.04, -2.95], [4.05, 4.65, 1.35]],
   name: '卧式单缸蒸汽机',
   en: 'Horizontal Mill Engine · c. 1850',
   subtitle: '综合展示',

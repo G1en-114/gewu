@@ -77,8 +77,8 @@ export const GUIDES: GuideDef[] = [
   { stage: 'nut', origin: [0.6, 2.42, 0] },
 ];
 
-export const CENTRE_LINES: Array<[Vec3, Vec3]> = [
-  [[0, -0.35, 0], [0, 7.2, 0]],
+export const CENTRE_LINES: Array<[Vec3, Vec3, number?]> = [
+  [[0, -0.35, 0], [0, 7.2, 0], 1.5],
 ];
 
 export const STEPS: StepDef[] = [
