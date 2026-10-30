@@ -97,9 +97,10 @@ export function Stirling() {
         <Callout id="cold" p={[DISP_X + 30, TOP + 18, 12]} />
       </Part>
       <Part id="displacer">
-        <Track get={(s) => [DISP_X, s.dispTop - 22]}>
+        <Track get={(s) => [DISP_X, s.dispTop - 27]}>
           <Turn k="st-displacer" profile={[[0, 0], [28, 0], [28, 18], [0, 18]]} seg={48} />
-          <Cyl c={[0, 44, 0]} r={1.5} len={52} seg={10} />
+          <Cyl c={[0, 22.5, 0]} r={1.5} len={9} seg={10} />
+          <Cyl c={[0, 27, 0]} r={2.2} len={3} axis="z" seg={12} />
         </Track>
         <Callout id="displacer" p={[DISP_X + 24, 52, 10]} />
       </Part>
@@ -116,21 +117,21 @@ export function Stirling() {
         <Callout id="piston" p={[POWER_X + 12, 104, 2]} />
       </Part>
       <Part id="rods">
-        <Link from={(s) => [DISP_X, s.dispTop + 8]} to={(s) => s.disp} z={14} />
-        <Link from={(s) => [POWER_X, s.powerY]} to={(s) => s.power} z={8} />
+        <Link from={(s) => [DISP_X, s.dispTop]} to={(s) => s.disp} z={-14} />
+        <Link from={(s) => [POWER_X, s.powerY]} to={(s) => s.power} z={-8} />
         <Callout id="rods" p={[10, 130, 14]} />
       </Part>
       <Part id="crank">
         <Track get={() => [CRANK[0], CRANK[1], stirlingMotion.theta]}>
           <Cyl c={[0, 0, 0]} r={2.4} len={60} axis="z" seg={16} />
-          <Box c={[R_POWER / 2, 0, 8]} s={[R_POWER + 6, 5, 2]} />
-          <Cyl c={[R_POWER, 0, 8]} r={1.4} len={4} axis="z" seg={10} />
+          <Box c={[R_POWER / 2, 0, -8]} s={[R_POWER + 6, 5, 2]} />
+          <Cyl c={[R_POWER, 0, -8]} r={1.4} len={4} axis="z" seg={10} />
           <group rotation={[0, 0, Math.PI / 2]}>
-            <Box c={[R_DISP / 2, 0, 14]} s={[R_DISP + 6, 5, 2]} />
-            <Cyl c={[R_DISP, 0, 14]} r={1.4} len={4} axis="z" seg={10} />
+            <Box c={[R_DISP / 2, 0, -14]} s={[R_DISP + 6, 5, 2]} />
+            <Cyl c={[R_DISP, 0, -14]} r={1.4} len={4} axis="z" seg={10} />
           </group>
         </Track>
-        <Box c={[CRANK[0], (CRANK[1] + TOP + 20) / 2, -16]} s={[8, CRANK[1] - TOP - 20, 4]} />
+        <Box c={[CRANK[0], (CRANK[1] + TOP + 20) / 2, 16]} s={[8, CRANK[1] - TOP - 20, 4]} />
         <Callout id="crank" p={[CRANK[0] - 10, CRANK[1] + 8, 18]} />
       </Part>
       <Part id="flywheel">
