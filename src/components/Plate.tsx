@@ -36,20 +36,7 @@ export function TitleColumn() {
 
       <PartSearch />
 
-      <nav className="machines" aria-label="选择机器">
-        {GROUPS.map((group) => (
-          <div key={group.name} className="machines-group">
-            <span className="machines-label">{group.name}</span>
-            <div className="machines-list">
-              {group.machines.map((m) => (
-                <button key={m.id} type="button" className={m.id === root.id ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
-                  {m.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </nav>
+      <MachineSwitcher rootId={root.id} />
 
       <div className="subject">
         {chain.length > 1 && (
@@ -153,6 +140,33 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'pla
         {recording !== null ? `录制中 ${recording.toFixed(0)}s` : '动画 ●'}
       </button>
       <button type="button" disabled={busy} onClick={() => onExport('json')}>JSON ↓</button>
+    </nav>
+  );
+}
+
+/** Group tabs, and the machines of the open group. */
+function MachineSwitcher({ rootId }: { rootId: string }) {
+  const home = GROUPS.findIndex((g) => g.machines.some((m) => m.id === rootId));
+  const [open, setOpen] = useState(home);
+  useEffect(() => setOpen(home), [home]);
+  const group = GROUPS[open] ?? GROUPS[0];
+  return (
+    <nav className="machines" aria-label="选择机器">
+      <div className="machines-tabs" role="tablist">
+        {GROUPS.map((g, i) => (
+          <button key={g.name} type="button" role="tab" aria-selected={i === open} className={i === open ? 'is-open' : ''} onClick={() => setOpen(i)}>
+            {g.name}<span className="machines-count">{g.machines.length}</span>
+          </button>
+        ))}
+        <button type="button" className="machines-all" onClick={() => useCatalogue.getState().set(true)} title="全部机器一览">全部 ↗</button>
+      </div>
+      <div className="machines-list" role="tabpanel">
+        {group.machines.map((m) => (
+          <button key={m.id} type="button" className={m.id === rootId ? 'is-on' : ''} onClick={() => selectMachine(m.id)} title={m.summary}>
+            {m.name}
+          </button>
+        ))}
+      </div>
     </nav>
   );
 }
