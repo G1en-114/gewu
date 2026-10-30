@@ -1,10 +1,11 @@
 import { useStudio } from '../state';
 import { engine } from './engine';
 import { jack } from './jack';
+import { valve } from './valve';
 import type { MachineDef } from './types';
 
 /** Machines in the order the switcher lists them. */
-export const MACHINES: MachineDef[] = [jack, engine];
+export const MACHINES: MachineDef[] = [jack, valve, engine];
 
 export function machineById(id: string): MachineDef {
   return MACHINES.find((m) => m.id === id) ?? MACHINES[0];
