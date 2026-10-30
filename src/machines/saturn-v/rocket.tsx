@@ -2,6 +2,8 @@ import { Part } from '../../scene/Part';
 import { Callout } from '../../scene/Overlay';
 import type { PartDef, StepDef, Vec3 } from '../types';
 import { Box, cone, Cyl, dome, level, Rod, Turn, tube } from '../kit';
+import { CommandModule, ServiceModule } from './csm';
+import { LunarModule } from './lm';
 import { OUTER, R1, SIC } from './sic';
 
 /**
@@ -109,41 +111,17 @@ export function Rocket() {
       </Part>
 
       <Part id="lm">
-        <Cyl c={[87.7, 0, 0]} r={2.0} len={1.7} axis="x" seg={8} />
-        <Turn k="lm-descent-bell" profile={[[0.2, 0], [0.4, 0], [0.75, -0.9], [0.7, -0.9], [0.2, -0.1]]} p={[86.85, 0, 0]} axis="x" seg={28} />
-        {[0, 1, 2, 3].map((i) => {
-          const a = (i * Math.PI) / 2 + Math.PI / 4;
-          return <Rod key={i} a={[88.4, 1.95 * Math.cos(a), 1.95 * Math.sin(a)]} b={[86.4, 2.35 * Math.cos(a), 2.35 * Math.sin(a)]} r={0.08} seg={8} />;
-        })}
-        <Box c={[89.9, 0, 0]} s={[2.4, 2.9, 3.2]} />
-        <Cyl c={[90.0, 0, 1.0]} r={1.15} len={2.2} axis="x" seg={8} />
-        <Cyl c={[91.4, 0, 0]} r={0.42} len={0.6} axis="x" seg={20} />
+        <group position={[84.8, 0, 0]} rotation={[0, 0, -Math.PI / 2]}><LunarModule folded /></group>
         <Callout id="lm" p={[90, 1.5, 1.6]} />
       </Part>
 
       <Part id="sm">
-        <Turn k="sm-skin" profile={tube(RC, 94.2, 98.1, 0.08)} axis="x" seg={56} />
-        <Turn k="sm-aft" profile={[[0.5, 0], [RC, 0], [RC, 0.12], [0.5, 0.12]]} p={[94.2, 0, 0]} axis="x" seg={56} />
-        <Turn k="sps-bell" profile={[[0.25, 0], [0.42, 0], [1.2, -2.6], [1.16, -2.6], [0.38, -0.15], [0.25, -0.1]]} p={[94.2, 0, 0]} axis="x" seg={48} />
-        {[0, 1, 2, 3].map((i) => {
-          const a = (i * Math.PI) / 2 + Math.PI / 4;
-          return (
-            <group key={i}>
-              <Cyl c={[96.0, 0.95 * Math.cos(a), 0.95 * Math.sin(a)]} r={0.48} len={3.4} axis="x" seg={24} />
-              <group rotation={[(i * Math.PI) / 2, 0, 0]}>
-                <Box c={[96.9, RC + 0.15, 0]} s={[0.5, 0.3, 0.5]} />
-              </group>
-            </group>
-          );
-        })}
-        <Cyl c={[96.0, 0, 0]} r={0.3} len={3.4} axis="x" seg={20} />
+        <group position={[94.2, 0, 0]}><ServiceModule /></group>
         <Callout id="sm" p={[96.2, RC + 0.3, 0.8]} />
       </Part>
 
       <Part id="cm">
-        <Turn k="cm-shell" profile={cone(RC, 0.42, 98.1, 101.3, 0.1)} axis="x" seg={56} />
-        <Turn k="cm-heat-shield" profile={dome(RC, 98.1, -0.28, 0.12)} axis="x" seg={56} />
-        <Cyl c={[101.45, 0, 0]} r={0.42} len={0.3} axis="x" seg={24} />
+        <group position={[98.1, 0, 0]}><CommandModule /></group>
         <Callout id="cm" p={[99.6, 1.4, 0.6]} />
       </Part>
 
@@ -171,9 +149,9 @@ const PARTS: PartDef[] = [
   { id: 's-ivb', index: 5, name: 'S-IVB 第三级', en: 'S-IVB Third Stage', role: '入轨 · 奔月', material: '铝合金', description: '一台可再次点火的 J-2：第一次点火进入地球停泊轨道，绕地球一圈半后第二次点火，把飞船送上奔月轨道。尾部两侧是姿控发动机舱。', explode: [18, 0, 0], stage: [0.36, 0.46] },
   { id: 'iu', index: 6, name: '仪器舱', en: 'Instrument Unit', role: '制导 · 控制', material: '铝蜂窝', description: '一圈不到 1 米高的环，装着整枚火箭的“大脑”：惯性平台、制导计算机和遥测设备，飞行中一直指挥三级火箭。', explode: [22, 0, 0], stage: [0.3, 0.38] },
   { id: 'sla', index: 7, name: '登月舱适配器', en: 'Spacecraft-LM Adapter', role: '罩住登月舱', material: '铝蜂窝', description: '锥形整流罩，由四块壁板组成。奔月途中壁板像花瓣一样张开，指令服务舱掉头对接，把登月舱拉出来。', explode: [26, 8, 0], stage: [0.18, 0.26] },
-  { id: 'lm', index: 8, name: '登月舱', en: 'Lunar Module', role: '登月 · 返回月球轨道', material: '铝合金 / 隔热毯', description: '两名航天员乘它降落月面。下降级（腿和下降发动机）留在月球上当发射台，上升级带人回月球轨道与指令舱会合。发射时腿折叠着。', explode: [36, 0, 0], stage: [0.24, 0.32] },
-  { id: 'sm', index: 9, name: '服务舱', en: 'Service Module', role: '动力 · 电源 · 氧气', material: '铝蜂窝', description: '尾部的服务推进系统发动机负责进出月球轨道；内部分扇区装推进剂箱、燃料电池和氧气。四组姿控喷管在侧面。返回地球前抛掉。', explode: [42, 0, 0], stage: [0.12, 0.2] },
-  { id: 'cm', index: 10, name: '指令舱', en: 'Command Module', role: '乘员舱 · 再入', material: '不锈钢蜂窝 / 烧蚀材料', description: '三名航天员全程坐在这里，是唯一返回地球的部分。底部的烧蚀防热罩在再入时承受约 2700℃ 高温。', explode: [46, 0, 0], stage: [0.06, 0.14] },
+  { id: 'lm', index: 8, name: '登月舱', en: 'Lunar Module', role: '登月 · 返回月球轨道', material: '铝合金 / 隔热毯', description: '两名航天员乘它降落月面。下降级（腿和下降发动机）留在月球上当发射台，上升级带人回月球轨道与指令舱会合。发射时腿折叠着。', explode: [36, 0, 0], stage: [0.24, 0.32], deep: [0, 16, 0] },
+  { id: 'sm', index: 9, name: '服务舱', en: 'Service Module', role: '动力 · 电源 · 氧气', material: '铝蜂窝', description: '尾部的服务推进系统发动机负责进出月球轨道；内部分扇区装推进剂箱、燃料电池和氧气。四组姿控喷管在侧面。返回地球前抛掉。', explode: [42, 0, 0], stage: [0.12, 0.2], deep: [6, 14, 0] },
+  { id: 'cm', index: 10, name: '指令舱', en: 'Command Module', role: '乘员舱 · 再入', material: '不锈钢蜂窝 / 烧蚀材料', description: '三名航天员全程坐在这里，是唯一返回地球的部分。底部的烧蚀防热罩在再入时承受约 2700℃ 高温。', explode: [46, 0, 0], stage: [0.06, 0.14], deep: [12, 14, 0] },
   { id: 'les', index: 11, name: '逃逸塔', en: 'Launch Escape System', role: '应急救生', material: '钢 / 玻璃钢', description: '万一发射出事，塔顶的固体火箭能在几秒内把指令舱拽离火箭。正常情况下二级点火后就抛掉。下面的锥形罩保护指令舱。', explode: [50, 0, 0], stage: [0, 0.08] },
 ];
 
@@ -207,13 +185,13 @@ export const rocketLevel = level({
   name: '土星五号',
   en: 'Saturn V / Apollo',
   subtitle: '整箭 · 三级火箭 + 阿波罗飞船',
-  summary: '11 个大件，第一级可再拆到 F-1 发动机',
+  summary: '11 个大件；第一级、登月舱、服务舱、指令舱可再拆，第一级下还有 F-1',
   drawingNo: 'GW-AP-00',
   scale: '1 : 1000',
   parts: PARTS,
   boltSets: {},
   neighbours: {},
-  children: { 's-ic': 'saturn-v/s-ic' },
+  children: { 's-ic': 'saturn-v/s-ic', lm: 'saturn-v/lm', sm: 'saturn-v/sm', cm: 'saturn-v/cm' },
   guides: [
     { stage: 'les', origin: [101.5, 0, 0] },
     { stage: 'cm', origin: [101.3, 0, 0] },
@@ -222,6 +200,6 @@ export const rocketLevel = level({
   ],
   centreLines: [[[-4, 0, 0], [116, 0, 0], 5.5]],
   steps: STEPS,
-  camera: { target: [55, 0, 0], offset: [24, 58, 185], orthoDistance: 900, exploded: { target: [80, 0, 0], scale: 1.4 }, deep: { target: [84, -10, 0], scale: 1.75 } },
+  camera: { target: [55, 0, 0], offset: [24, 58, 185], orthoDistance: 900, exploded: { target: [80, 0, 0], scale: 1.4 }, deep: { target: [86, -2, 0], scale: 1.95 } },
   Model: Rocket,
 });
