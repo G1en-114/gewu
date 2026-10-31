@@ -153,6 +153,6 @@ export const lmLevel = level({
   ],
   centreLines: [[[0, -2, 0], [0, 7.5, 0], 2.4]],
   steps: STEPS,
-  camera: { target: [0, 3, 0], offset: [13.5, 9, 19], orthoDistance: 46, exploded: { target: [0.5, 4.4, 0], scale: 1.45 } },
+  camera: { target: [0, 3, 0], offset: [13.5, 9, 19], orthoDistance: 46, exploded: { target: [0.5, 5, 0], scale: 1.85 } },
   Model: () => <LunarModule />,
 });

@@ -192,7 +192,7 @@ export const piano: MachineDef = level({
   guides: [{ stage: 'hammer', origin: [FLANGE[0], FLANGE[1], 0] }],
   centreLines: [[[BALANCE[0], -40, 0], [BALANCE[0], 30, 0]]],
   steps: STEPS,
-  camera: { target: [270, 100, 0], offset: [70, 110, 1050], orthoDistance: 2400, exploded: { target: [250, 120, 20], scale: 1.25 }, foci: { escape: { target: [400, 90, 0], scale: 0.45 } } },
+  camera: { target: [270, 100, 0], offset: [70, 110, 1050], orthoDistance: 2400, exploded: { target: [200, 120, 20], scale: 1.4 }, foci: { escape: { target: [400, 90, 0], scale: 0.45 } } },
   Model: PianoAction,
   Driver: PianoDriver,
   Controls: PianoControls,

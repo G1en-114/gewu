@@ -168,7 +168,7 @@ export const windGearboxLevel: MachineDef = level({
   guides: [{ stage: 'carrier', origin: [-0.5, 0, 0] }],
   centreLines: [[[-0.7, 0, 0], [2.8, 0, 0], 1.2]],
   steps: STEPS,
-  camera: { target: [1.0, 0.3, 0], offset: [2.6, 2.4, 6.4], orthoDistance: 22, exploded: { target: [0.8, 0.4, 0.4], scale: 1.5 } },
+  camera: { target: [1.0, 0.3, 0], offset: [3.5, 3.2, 8.6], orthoDistance: 22, exploded: { target: [0.8, 0.4, 0.4], scale: 1.5 } },
   Model: WindGearbox,
   Driver: WindDriver,
 });

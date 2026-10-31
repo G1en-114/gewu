@@ -174,7 +174,7 @@ export const cmLevel = level({
     { title: '剖视', en: 'Section', body: '剖开看两层壳：外面是防热壳，里面是承压舱；三张躺椅背对着底部防热罩，前方是仪表板，舱顶前段塞着降落伞。', state: { explode: 0, section: true, running: false, select: 'couches', focus: null } },
     { title: '拆开', en: 'Teardown', body: '先拆对接探头和降落伞，打开舱门，揭开外防热壳，取出仪表板和座椅，最后卸下底部防热罩。', state: { explode: 1, section: false, running: false, select: null, focus: null } },
   ] as StepDef[],
-  camera: { target: [1.6, 0, 0], offset: [5, 4, 9], orthoDistance: 32, exploded: { target: [1.8, 0.6, 0.5], scale: 1.5 } },
+  camera: { target: [1.6, 0, 0], offset: [5, 4, 9], orthoDistance: 32, exploded: { target: [1.8, 2, 0.5], scale: 3 } },
   Model: CommandModule,
 });
 
@@ -199,7 +199,7 @@ export const smLevel = level({
     { title: '剖视', en: 'Section', body: '剖开看六个扇区：四个大推进剂箱各占一个，燃料电池占一个，中心区是两个氦气瓶，发动机从后面伸出。', state: { explode: 0, section: true, running: false, select: 'tanks', focus: null } },
     { title: '拆开', en: 'Teardown', body: '拆下散热器、姿控喷管和外壳，再拆主发动机、天线、燃料电池、贮箱和氦气瓶，剩下扇区结构。', state: { explode: 1, section: false, running: false, select: null, focus: null } },
   ] as StepDef[],
-  camera: { target: [0.8, 0, 0], offset: [7, 6, 13], orthoDistance: 45, exploded: { target: [0.8, 1.5, 0.8], scale: 1.6 } },
+  camera: { target: [0.8, 0, 0], offset: [7, 6, 13], orthoDistance: 45, exploded: { target: [0.8, 2.6, 0.8], scale: 2.6 } },
   Model: ServiceModule,
 });
 

@@ -335,7 +335,7 @@ export const gearbox: MachineDef = level({
   ],
   centreLines: [[[-60, 0, 0], [345, 0, 0]], [[15, -70, 0], [315, -70, 0]]],
   steps: STEPS,
-  camera: { target: [150, -10, 0], offset: [420, 400, 1000], orthoDistance: 3000, exploded: { target: [190, 40, -60], scale: 1.6 } },
+  camera: { target: [150, -10, 0], offset: [420, 400, 1000], orthoDistance: 3000, exploded: { target: [190, 60, -60], scale: 1.85 } },
   Model: Gearbox,
   Driver: GearboxDriver,
   Controls: GearboxControls,
