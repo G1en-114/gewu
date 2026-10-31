@@ -61,3 +61,7 @@
 ## 自检
 
 `npm run build && npx vite preview --port 5199` 后运行 `node scripts/check-machines.mjs`：在无头 Edge 里逐个打开所有机器与子组件，切到最后一步和三视图，汇报控制台错误。可加 `--jobs 4`（并发）、`--only watch,model-t/`（只测部分组件）、`--shots <目录>`（每台存一张拆开后的截图，用来检查取景）。
+
+## 目录缩略图
+
+目录卡片上的线稿图在 `public/thumbs/<id>.webp`，由 `node scripts/make-thumbs.mjs http://localhost:5188/`（先开 dev 或 preview 服务）在无头 Edge 里逐台渲染、按线稿裁切生成。改了某台机器的模型或镜头后，用 `--only <id>` 重新生成它。
