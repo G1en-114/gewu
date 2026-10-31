@@ -22,14 +22,61 @@ export function rgb(hex: string): THREE.Vector3 {
   return new THREE.Vector3(((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255);
 }
 
-export const PALETTE = {
-  paper: '#f4f0e7',
-  face: '#fbf9f4',
-  shade: '#d9d5cc',
-  ink: '#24221f',
-  rust: '#a8432f',
-  cut: '#e7c3b3',
+export interface Palette {
+  /** Sheet background. */
+  paper: string;
+  /** Lit and shaded faces. */
+  face: string;
+  shade: string;
+  /** Lines. */
+  ink: string;
+  /** Accent: selection, callouts, guides. */
+  rust: string;
+  /** Section (cut) faces. */
+  cut: string;
+}
+
+export type Theme = 'paper' | 'blueprint';
+
+export const PALETTES: Record<Theme, Palette> = {
+  paper: { paper: '#f4f0e7', face: '#fbf9f4', shade: '#d9d5cc', ink: '#24221f', rust: '#a8432f', cut: '#e7c3b3' },
+  // Cyanotype: pale lines on Prussian blue, amber for what is picked out.
+  blueprint: { paper: '#173b63', face: '#1e4672', shade: '#163758', ink: '#e8f0f9', rust: '#ffc35c', cut: '#2f5f90' },
 };
+
+/** The palette in use. setPalette changes it in place, so readers always see the current one. */
+export const PALETTE: Palette = { ...PALETTES.paper };
+
+/** Colour uniforms shared by every ink material and the composite pass. */
+export const paletteUniforms = {
+  uFace: { value: rgb(PALETTE.face) },
+  uShade: { value: rgb(PALETTE.shade) },
+  uCut: { value: rgb(PALETTE.cut) },
+  uInk: { value: rgb(PALETTE.ink) },
+  uAccent: { value: rgb(PALETTE.rust) },
+};
+
+/** Plain three.js line materials drawn in the ink or accent colour, recoloured with the palette. */
+const tinted = new Set<{ material: THREE.LineBasicMaterial; tone: 'ink' | 'rust' }>();
+
+export function tint<T extends THREE.LineBasicMaterial>(material: T, tone: 'ink' | 'rust'): T {
+  material.color.set(PALETTE[tone]);
+  const entry = { material, tone };
+  tinted.add(entry);
+  material.addEventListener('dispose', () => tinted.delete(entry));
+  return material;
+}
+
+export function setPalette(next: Palette) {
+  Object.assign(PALETTE, next);
+  const u = paletteUniforms;
+  u.uFace.value.copy(rgb(next.face));
+  u.uShade.value.copy(rgb(next.shade));
+  u.uCut.value.copy(rgb(next.cut));
+  u.uInk.value.copy(rgb(next.ink));
+  u.uAccent.value.copy(rgb(next.rust));
+  for (const { material, tone } of tinted) material.color.set(next[tone]);
+}
 
 const vertexShader = /* glsl */ `
   #include <common>
@@ -113,10 +160,10 @@ export function createInkMaterial({ partId, tone = 1, clip }: InkMaterialOptions
       uTone: { value: tone },
       uSelected: { value: 0 },
       uHover: { value: 0 },
-      uFace: { value: rgb(PALETTE.face) },
-      uShade: { value: rgb(PALETTE.shade) },
-      uCut: { value: rgb(PALETTE.cut) },
-      uAccent: { value: rgb(PALETTE.rust) },
+      uFace: paletteUniforms.uFace,
+      uShade: paletteUniforms.uShade,
+      uCut: paletteUniforms.uCut,
+      uAccent: paletteUniforms.uAccent,
     },
   });
   material.clippingPlanes = clip ?? null;

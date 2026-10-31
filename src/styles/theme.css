@@ -4,11 +4,42 @@
   --ink: #24221f;
   --ink-2: #57524a;
   --ink-3: #8c867b;
-  --hair: rgba(36, 34, 31, 0.16);
-  --hair-strong: rgba(36, 34, 31, 0.42);
   --rust: #a8432f;
+  --menu: #fbf8f1;
+  /* The same colours as channels, for translucent washes: rgb(var(--ink-rgb) / 0.2). */
+  --paper-rgb: 244 240 231;
+  --ink-rgb: 36 34 31;
+  --rust-rgb: 168 67 47;
+  --hi-rgb: 250 248 242;
+  --shadow-rgb: 60 45 30;
+  --glow-rgb: 255 255 255;
+  --veil-rgb: 236 230 216;
+  --hair: rgb(var(--ink-rgb) / 0.16);
+  --hair-strong: rgb(var(--ink-rgb) / 0.42);
   --serif-zh: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
   --serif-en: "Cormorant Garamond", "EB Garamond", Garamond, Georgia, serif;
+}
+
+
+/* Blueprint: pale lines on Prussian blue, amber accent. The 3D palette follows (src/theme.ts). */
+:root[data-theme="blueprint"] {
+  color-scheme: dark;
+  --paper: #173b63;
+  --paper-hi: #1d4470;
+  --ink: #e8f0f9;
+  --ink-2: #b8cbe2;
+  --ink-3: #8aa7c9;
+  --rust: #ffc35c;
+  --menu: #1d4470;
+  --paper-rgb: 23 59 99;
+  --ink-rgb: 232 240 249;
+  --rust-rgb: 255 195 92;
+  --hi-rgb: 29 68 112;
+  --shadow-rgb: 2 10 22;
+  --glow-rgb: 52 104 160;
+  --veil-rgb: 9 28 50;
+  --hair: rgb(var(--ink-rgb) / 0.2);
+  --hair-strong: rgb(var(--ink-rgb) / 0.48);
 }
 
 * { box-sizing: border-box; }
@@ -31,9 +62,9 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   min-height: 700px;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 60% 45%, rgba(255, 255, 255, 0.55), transparent 70%),
-    linear-gradient(rgba(36, 34, 31, 0.035) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(90deg, rgba(36, 34, 31, 0.035) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(ellipse at 60% 45%, rgb(var(--glow-rgb) / 0.55), transparent 70%),
+    linear-gradient(rgb(var(--ink-rgb) / 0.035) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.035) 1px, transparent 1px) 0 0 / 28px 28px,
     var(--paper);
 }
 .studio::after {
@@ -54,8 +85,8 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, var(--paper) 0, rgba(244, 240, 231, 0.94) 390px, rgba(244, 240, 231, 0) 470px),
-    radial-gradient(ellipse 380px 330px at calc(100% - 190px) calc(100% - 180px), rgba(244, 240, 231, 0.95) 55%, rgba(244, 240, 231, 0) 100%);
+    linear-gradient(90deg, var(--paper) 0, rgb(var(--paper-rgb) / 0.94) 390px, rgb(var(--paper-rgb) / 0) 470px),
+    radial-gradient(ellipse 380px 330px at calc(100% - 190px) calc(100% - 180px), rgb(var(--paper-rgb) / 0.95) 55%, rgb(var(--paper-rgb) / 0) 100%);
 }
 .stage canvas { display: block; touch-action: none; }
 
@@ -118,10 +149,10 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .search input::-webkit-search-cancel-button { display: none; }
 .search-results {
   position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px 0; list-style: none;
-  background: #fbf8f1; border: 1px solid var(--hair-strong); box-shadow: 0 10px 28px rgba(60, 45, 30, 0.12);
+  background: var(--menu); border: 1px solid var(--hair-strong); box-shadow: 0 10px 28px rgb(var(--shadow-rgb) / 0.12);
 }
 .search-results button { display: flex; flex-direction: column; gap: 1px; width: 100%; padding: 6px 12px; text-align: left; }
-.search-results button.is-active { background: rgba(168, 67, 47, 0.07); }
+.search-results button.is-active { background: rgb(var(--rust-rgb) / 0.07); }
 .search-name { font-size: 13px; letter-spacing: 0.08em; color: var(--ink); }
 .search-path { font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); }
 .machines { display: grid; gap: 8px; margin-top: 14px; }
@@ -243,21 +274,21 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .plate-meta button { font-size: 12px; }
 .plate-meta .meta-catalogue { color: var(--rust); }
 /* View modes: one segmented control, the current one inked in. */
-.plate-meta .views { display: flex; border: 1px solid var(--hair-strong); background: rgba(250, 248, 242, 0.7); }
+.plate-meta .views { display: flex; border: 1px solid var(--hair-strong); background: rgb(var(--hi-rgb) / 0.7); }
 .plate-meta .views button { padding: 5px 12px 4px; letter-spacing: 0.16em; color: var(--ink-2); transition: background 0.15s, color 0.15s; }
 .plate-meta .views button + button { border-left: 1px solid var(--hair); }
 .plate-meta .views button.is-on { background: var(--ink); color: var(--paper-hi); }
-.plate-meta .views button:not(.is-on):hover { color: var(--rust); background: rgba(168, 67, 47, 0.05); }
+.plate-meta .views button:not(.is-on):hover { color: var(--rust); background: rgb(var(--rust-rgb) / 0.05); }
 .plate-meta .meta-action { padding: 5px 2px 4px; }
 .plate-meta button:disabled { cursor: progress; opacity: 0.55; }
 .plate-meta button.is-recording { color: var(--rust); opacity: 1; }
 .export { position: relative; }
 .export-menu {
   position: absolute; z-index: 10; right: 0; top: calc(100% + 6px); min-width: 220px; margin: 0; padding: 4px 0; list-style: none;
-  background: #fbf8f1; border: 1px solid var(--hair-strong); box-shadow: 0 10px 28px rgba(60, 45, 30, 0.12);
+  background: var(--menu); border: 1px solid var(--hair-strong); box-shadow: 0 10px 28px rgb(var(--shadow-rgb) / 0.12);
 }
 .export-menu button { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 8px 14px; text-align: left; letter-spacing: 0.1em; }
-.export-menu button:hover { background: rgba(168, 67, 47, 0.07); color: inherit; }
+.export-menu button:hover { background: rgb(var(--rust-rgb) / 0.07); color: inherit; }
 .export-label { font-size: 13px; color: var(--ink); }
 .export-hint { font-size: 11px; color: var(--ink-3); letter-spacing: 0.06em; }
 
@@ -273,7 +304,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .caption {
   margin-bottom: 14px;
   padding: 14px 16px 12px;
-  background: rgba(250, 248, 242, 0.9);
+  background: rgb(var(--hi-rgb) / 0.9);
   border: 1px solid var(--hair);
   backdrop-filter: blur(2px);
 }
@@ -287,8 +318,8 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .caption-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .caption-action { font-size: 12px; letter-spacing: 0.16em; color: var(--rust); white-space: nowrap; }
 .caption-action:hover { text-decoration: underline; text-underline-offset: 3px; }
-.caption-open { display: block; width: 100%; margin: 10px 0 2px; padding: 7px 10px; border: 1px solid var(--rust); text-align: left; font-size: 12.5px; letter-spacing: 0.1em; color: var(--rust); background: rgba(168, 67, 47, 0.05); }
-.caption-open:hover { background: rgba(168, 67, 47, 0.12); }
+.caption-open { display: block; width: 100%; margin: 10px 0 2px; padding: 7px 10px; border: 1px solid var(--rust); text-align: left; font-size: 12.5px; letter-spacing: 0.1em; color: var(--rust); background: rgb(var(--rust-rgb) / 0.05); }
+.caption-open:hover { background: rgb(var(--rust-rgb) / 0.12); }
 .part-size { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
 .part-size .slider { flex: 1; min-width: 0; grid-template-columns: 30px 1fr 42px; gap: 8px; }
 .part-size .caption-action { flex: none; }
@@ -296,13 +327,13 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .parts tr.is-hidden td { opacity: 0.38; }
 .stepper { display: grid; grid-template-columns: 26px 1fr 26px; align-items: center; gap: 10px; }
 .stepper button { width: 26px; height: 26px; border: 1px solid var(--hair-strong); border-radius: 50%; font: 500 16px/1 var(--serif-en); color: var(--rust); transition: background 0.2s, opacity 0.2s; }
-.stepper button:hover:not(:disabled) { background: rgba(168, 67, 47, 0.08); }
+.stepper button:hover:not(:disabled) { background: rgb(var(--rust-rgb) / 0.08); }
 .stepper button:disabled { opacity: 0.3; cursor: default; }
 .stepper p { margin: 0; font-size: 12.5px; letter-spacing: 0.08em; color: var(--ink-2); line-height: 1.5; min-height: 1.5em; }
 .stepper-count { font: 500 13px var(--serif-en); color: var(--rust); margin-right: 8px; letter-spacing: 0.04em; }
 .parts .has-child { color: var(--rust); }
 
-.parts { width: 100%; border-collapse: collapse; font-size: 12px; background: rgba(244, 240, 231, 0.82); }
+.parts { width: 100%; border-collapse: collapse; font-size: 12px; background: rgb(var(--paper-rgb) / 0.82); }
 .parts caption { text-align: left; padding-bottom: 6px; font: 500 12px var(--serif-en); letter-spacing: 0.18em; color: var(--ink-3); }
 .parts tr { border-top: 1px solid var(--hair); cursor: pointer; }
 .parts tr:last-child { border-bottom: 1px solid var(--hair-strong); }
@@ -426,7 +457,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   .legend .caption {
     position: fixed; z-index: 30; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     max-width: 560px; max-height: 46vh; margin: 0 auto; overflow-y: auto;
-    background: var(--paper-hi); border-color: var(--hair-strong); box-shadow: 0 -6px 30px rgba(60, 45, 30, 0.18);
+    background: var(--paper-hi); border-color: var(--hair-strong); box-shadow: 0 -6px 30px rgb(var(--shadow-rgb) / 0.18);
     animation: sheet-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   .stage-hint { display: none; }
@@ -448,13 +479,13 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .studio.is-drawing .legend,
 .studio.is-drawing .paper-drawings,
 .studio.is-drawing .stage-hint { display: none; }
-.studio.is-drawing::before { background: linear-gradient(90deg, var(--paper) 0, rgba(244, 240, 231, 0.94) 400px, rgba(244, 240, 231, 0) 440px); }
+.studio.is-drawing::before { background: linear-gradient(90deg, var(--paper) 0, rgb(var(--paper-rgb) / 0.94) 400px, rgb(var(--paper-rgb) / 0) 440px); }
 .sheet .cross line { stroke: var(--rust); stroke-width: 0.7; stroke-dasharray: 14 3 2 3; opacity: 0.75; }
 .sheet { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .sheet-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .sheet .proj line, .sheet .proj polyline { fill: none; stroke: var(--rust); stroke-width: 0.8; stroke-dasharray: 3 3; opacity: 0.85; }
 .sheet .proj .miter { stroke-dasharray: none; stroke-width: 0.9; opacity: 0.7; }
-.sheet .proj .box { fill: rgba(168, 67, 47, 0.04); stroke: var(--rust); stroke-width: 0.9; stroke-dasharray: none; }
+.sheet .proj .box { fill: rgb(var(--rust-rgb) / 0.04); stroke: var(--rust); stroke-width: 0.9; stroke-dasharray: none; }
 .sheet-label {
   position: absolute;
   transform: translateX(-50%);
@@ -492,13 +523,13 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 
 .catalogue {
   position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-start; justify-content: center;
-  padding: 6vh 24px; overflow-y: auto; background: rgba(236, 230, 216, 0.72); backdrop-filter: blur(6px);
+  padding: 6vh 24px; overflow-y: auto; background: rgb(var(--veil-rgb) / 0.72); backdrop-filter: blur(6px);
   animation: catalogue-in 0.35s ease both;
 }
 @keyframes catalogue-in { from { opacity: 0; } to { opacity: 1; } }
 .catalogue-sheet {
-  width: min(1080px, 100%); padding: 34px 40px 28px; background: var(--paper-hi, #fbf8f1);
-  border: 1px solid var(--hair-strong); box-shadow: 0 24px 60px rgba(60, 45, 30, 0.16);
+  width: min(1080px, 100%); padding: 34px 40px 28px; background: var(--paper-hi);
+  border: 1px solid var(--hair-strong); box-shadow: 0 24px 60px rgb(var(--shadow-rgb) / 0.16);
   animation: catalogue-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 @keyframes catalogue-rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -512,15 +543,15 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .catalogue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
 .catalogue-card {
   display: flex; flex-direction: column; gap: 3px; padding: 14px 16px 13px; text-align: left;
-  border: 1px solid var(--hair); background: rgba(244, 240, 231, 0.5); transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  border: 1px solid var(--hair); background: rgb(var(--paper-rgb) / 0.5); transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
-.catalogue-card:hover { border-color: var(--rust); background: rgba(168, 67, 47, 0.04); transform: translateY(-2px); }
+.catalogue-card:hover { border-color: var(--rust); background: rgb(var(--rust-rgb) / 0.04); transform: translateY(-2px); }
 .card-thumb {
   display: block; width: calc(100% + 32px); aspect-ratio: 16 / 10; margin: -14px -16px 10px; object-fit: contain;
   border-bottom: 1px solid var(--hair);
   background:
-    linear-gradient(rgba(36, 34, 31, 0.04) 1px, transparent 1px) 0 0 / 14px 14px,
-    linear-gradient(90deg, rgba(36, 34, 31, 0.04) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(rgb(var(--ink-rgb) / 0.04) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.04) 1px, transparent 1px) 0 0 / 14px 14px,
     var(--paper);
   transition: transform 0.3s ease;
 }
@@ -547,3 +578,36 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
   .card-meta { margin-top: 4px; font-size: 10.5px; letter-spacing: 0.06em; }
 }
 
+
+/* ── Theme toggle and blueprint touches ─────────── */
+
+.theme-swatch {
+  display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px;
+  border: 1px solid var(--hair-strong);
+  /* Both sheets at once: paper and blueprint, whichever is showing. */
+  background: linear-gradient(135deg, #f4f0e7 50%, #173b63 50%);
+}
+.plate-meta .meta-theme.is-on { color: var(--rust); }
+
+:root[data-theme="blueprint"] .studio {
+  background:
+    radial-gradient(ellipse at 60% 45%, rgb(var(--glow-rgb) / 0.55), transparent 70%),
+    linear-gradient(rgb(var(--ink-rgb) / 0.07) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.07) 1px, transparent 1px) 0 0 / 28px 28px,
+    var(--paper);
+}
+:root[data-theme="blueprint"] .search input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 13 13' fill='none' stroke='%238aa7c9' stroke-width='1.2'%3E%3Ccircle cx='5.5' cy='5.5' r='4.2'/%3E%3Cpath d='M8.6 8.6l3.4 3.4'/%3E%3C/svg%3E");
+}
+/* Thumbnails are ink on white faces: inverted and screened they become pale lines on blue. */
+:root[data-theme="blueprint"] .card-thumb {
+  background: none;
+  filter: invert(1) hue-rotate(180deg) brightness(0.92);
+  mix-blend-mode: screen;
+}
+:root[data-theme="blueprint"] .catalogue-card {
+  background:
+    linear-gradient(rgb(var(--ink-rgb) / 0.06) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.06) 1px, transparent 1px) 0 0 / 14px 14px,
+    rgb(var(--paper-rgb) / 0.6);
+}

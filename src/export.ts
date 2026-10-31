@@ -11,8 +11,11 @@ import { PALETTE } from './scene/ink';
 /** Set by <ExportBridge> inside the R3F canvas. */
 export const bridge: { setDpr?: (dpr: number) => void; getDpr?: () => number } = {};
 
-const INK = PALETTE.ink;
-const RUST = PALETTE.rust;
+/** Ink at an opacity, in the current palette (exports follow the paper / blueprint theme). */
+function inkA(alpha: number) {
+  const v = parseInt(PALETTE.ink.slice(1), 16);
+  return `rgba(${(v >> 16) & 255}, ${(v >> 8) & 255}, ${v & 255}, ${alpha})`;
+}
 const ZH = '"Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif';
 const EN = '"Cormorant Garamond", Garamond, Georgia, serif';
 
@@ -36,7 +39,7 @@ function download(name: string, href: string) {
 function paper(ctx: CanvasRenderingContext2D, w: number, h: number, grid: number) {
   ctx.fillStyle = PALETTE.paper;
   ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = 'rgba(36, 34, 31, 0.035)';
+  ctx.strokeStyle = inkA(0.035);
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let x = 0; x <= w; x += grid) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, h); }
@@ -127,14 +130,14 @@ export async function exportPlate() {
   out.height = H;
   const ctx = out.getContext('2d')!;
   paper(ctx, W, H, 70);
-  ctx.strokeStyle = 'rgba(36, 34, 31, 0.35)';
+  ctx.strokeStyle = inkA(0.35);
   ctx.lineWidth = 2;
   ctx.strokeRect(60, 60, W - 120, H - 120);
   ctx.lineWidth = 1;
   ctx.strokeRect(76, 76, W - 152, H - 152);
 
   // Title column.
-  ctx.fillStyle = INK;
+  ctx.fillStyle = PALETTE.ink;
   ctx.textBaseline = 'alphabetic';
   ctx.font = `900 230px ${ZH}`;
   ctx.fillText('格物', 150, 380);
@@ -146,10 +149,10 @@ export async function exportPlate() {
   ctx.letterSpacing = '16px';
   ctx.fillText(`${machine.name} · 爆炸图`, 150, 620);
   ctx.letterSpacing = '4px';
-  ctx.fillStyle = RUST;
+  ctx.fillStyle = PALETTE.rust;
   ctx.font = `500 40px ${EN}`;
   ctx.fillText('FIG. 01', 150, 720);
-  ctx.fillStyle = 'rgba(36, 34, 31, 0.4)';
+  ctx.fillStyle = inkA(0.4);
   ctx.fillRect(330, 707, 460, 1.5);
   ctx.letterSpacing = '0px';
 
@@ -178,7 +181,7 @@ export async function exportPlate() {
   anchors.forEach((a, i) => {
     const b = balloons[i];
     const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    ctx.strokeStyle = RUST;
+    ctx.strokeStyle = PALETTE.rust;
     ctx.lineWidth = 2;
     ctx.setLineDash([7, 6]);
     ctx.beginPath();
@@ -186,7 +189,7 @@ export async function exportPlate() {
     ctx.lineTo(b.x - ((b.x - a.x) / d) * R, b.y - ((b.y - a.y) / d) * R);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = RUST;
+    ctx.fillStyle = PALETTE.rust;
     ctx.beginPath();
     ctx.arc(a.x, a.y, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -196,7 +199,7 @@ export async function exportPlate() {
     ctx.fill();
     ctx.lineWidth = 2.5;
     ctx.stroke();
-    ctx.fillStyle = RUST;
+    ctx.fillStyle = PALETTE.rust;
     ctx.font = `600 38px ${EN}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -208,7 +211,7 @@ export async function exportPlate() {
   // Parts list.
   const tx = W - 820;
   let ty = 760;
-  ctx.fillStyle = 'rgba(36, 34, 31, 0.55)';
+  ctx.fillStyle = inkA(0.55);
   ctx.font = `500 34px ${EN}`;
   ctx.letterSpacing = '6px';
   ctx.fillText('零件明细 · PARTS', tx, ty - 30);
@@ -216,28 +219,28 @@ export async function exportPlate() {
   const rowH = 82;
   machine.parts.forEach((part, i) => {
     const y = ty + i * rowH;
-    ctx.fillStyle = 'rgba(36, 34, 31, 0.16)';
+    ctx.fillStyle = inkA(0.16);
     ctx.fillRect(tx, y, 700, 1.5);
-    ctx.fillStyle = RUST;
+    ctx.fillStyle = PALETTE.rust;
     ctx.font = `500 38px ${EN}`;
     ctx.fillText(String(part.index).padStart(2, '0'), tx, y + 54);
-    ctx.fillStyle = INK;
+    ctx.fillStyle = PALETTE.ink;
     ctx.font = `400 38px ${ZH}`;
     ctx.fillText(part.name, tx + 80, y + 54);
-    ctx.fillStyle = 'rgba(36, 34, 31, 0.5)';
+    ctx.fillStyle = inkA(0.5);
     ctx.font = `italic 500 34px ${EN}`;
     ctx.textAlign = 'right';
     ctx.fillText(part.en, tx + 700, y + 54);
     ctx.textAlign = 'left';
   });
   ty += machine.parts.length * rowH;
-  ctx.fillStyle = 'rgba(36, 34, 31, 0.45)';
+  ctx.fillStyle = inkA(0.45);
   ctx.fillRect(tx, ty, 700, 2);
 
   // Title block.
   const bx = tx;
   const by = H - 330;
-  ctx.strokeStyle = 'rgba(36, 34, 31, 0.45)';
+  ctx.strokeStyle = inkA(0.45);
   ctx.lineWidth = 2;
   ctx.strokeRect(bx, by, 700, 190);
   ctx.beginPath();
@@ -246,11 +249,11 @@ export async function exportPlate() {
   ctx.moveTo(bx + 350, by + 95);
   ctx.lineTo(bx + 350, by + 190);
   ctx.stroke();
-  ctx.fillStyle = INK;
+  ctx.fillStyle = PALETTE.ink;
   ctx.font = `600 40px ${ZH}`;
   ctx.fillText(`格物 · ${machine.name}`, bx + 28, by + 62);
   ctx.font = `400 30px ${ZH}`;
-  ctx.fillStyle = 'rgba(36, 34, 31, 0.7)';
+  ctx.fillStyle = inkA(0.7);
   ctx.fillText(`图号 ${machine.drawingNo}`, bx + 28, by + 152);
   ctx.fillText(`比例 ${machine.scale}`, bx + 378, by + 152);
 
@@ -283,10 +286,10 @@ export async function recordTeardown(onProgress: (seconds: number | null) => voi
     paper(ctx, out.width, out.height, Math.round(28 * (out.width / source.clientWidth)));
     ctx.drawImage(source, 0, 0);
     const s = out.width / source.clientWidth;
-    ctx.fillStyle = INK;
+    ctx.fillStyle = PALETTE.ink;
     ctx.font = `600 ${Math.round(22 * s)}px ${ZH}`;
     ctx.fillText(`格物 · ${machine.name}`, 32 * s, out.height - 34 * s);
-    ctx.fillStyle = RUST;
+    ctx.fillStyle = PALETTE.rust;
     ctx.font = `500 ${Math.round(16 * s)}px ${EN}`;
     ctx.fillText('MECHANISM STUDIO · FIG. 01', 32 * s, out.height - 64 * s);
     onProgress((performance.now() - started) / 1000);

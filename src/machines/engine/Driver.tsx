@@ -63,7 +63,15 @@ function FlywheelArrow() {
   }, []);
   useEffect(() => {
     scene.add(arrow);
-    return () => { scene.remove(arrow); };
+    return () => {
+      scene.remove(arrow);
+      arrow.traverse((o) => {
+        if (o instanceof THREE.Line) {
+          o.geometry.dispose();
+          (o.material as THREE.Material).dispose();
+        }
+      });
+    };
   }, [scene, arrow]);
   const offset = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {

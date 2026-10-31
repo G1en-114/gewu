@@ -7,6 +7,7 @@ import { PartsLegend, PlateMeta, TitleColumn } from './components/Plate';
 import { currentMachine, hasMachine, useMachine } from './machines';
 import { CameraRig, Guides, InkRenderer, MotionDriver } from './scene';
 import { selectMachine, useStudio } from './state';
+import './theme';
 import { bridge, exportPlate, recordTeardown } from './export';
 import { DrawingRig } from './drawing/DrawingRig';
 import { DrawingSheet } from './drawing/Sheet';

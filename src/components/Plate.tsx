@@ -3,6 +3,7 @@ import { allMachines, GROUPS, lineage, MACHINES, machineById, useMachine } from 
 import type { MachineDef } from '../machines/types';
 import { useCatalogue } from './Catalogue';
 import { aimAt, clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
+import { useTheme } from '../theme';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -134,8 +135,20 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: Expo
       <button type="button" className="meta-action" onClick={() => restoreAll(machine.steps[0])} title="合拢所有零件，撤销挪动、缩放和隐藏，关掉剖视，回到第一步和默认视角">
         复位
       </button>
+      <ThemeToggle />
       <ExportMenu onExport={onExport} busy={busy} recording={recording} />
     </nav>
+  );
+}
+
+/** Paper or blueprint. */
+function ThemeToggle() {
+  const { theme, set } = useTheme();
+  const blueprint = theme === 'blueprint';
+  return (
+    <button type="button" className={`meta-action meta-theme${blueprint ? ' is-on' : ''}`} aria-pressed={blueprint} onClick={() => set(blueprint ? 'paper' : 'blueprint')} title={blueprint ? '换回纸面线稿' : '换成蓝图：深蓝底、白色线条'}>
+      <span className="theme-swatch" aria-hidden="true" />蓝图
+    </button>
   );
 }
 

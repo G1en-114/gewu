@@ -6,7 +6,7 @@ import { useMachine } from '../machines';
 import type { GuideDef, Vec3 } from '../machines/types';
 import { motion, partVisible, useStudio, type ViewMode } from '../state';
 import { OVERLAY_LAYER } from './InkRenderer';
-import { PALETTE } from './ink';
+import { tint } from './ink';
 import { SECTION_PLANE, usePartDepth } from './Part';
 import { boltSetDef, partDef, partOffset, stageProgress } from './explode';
 
@@ -43,11 +43,11 @@ export function Callout({ id, p }: { id: string; p: Vec3 }) {
   );
 }
 
-export function overlayLine(points: THREE.Vector3[], { dashed = true, opacity = 0.55, color = PALETTE.rust, dash = 0.22, gap = 0.09 } = {}) {
+export function overlayLine(points: THREE.Vector3[], { dashed = true, opacity = 0.55, tone = 'rust' as 'rust' | 'ink', dash = 0.22, gap = 0.09 } = {}) {
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = dashed
-    ? new THREE.LineDashedMaterial({ color, dashSize: dash, gapSize: gap, transparent: true, opacity, depthTest: false })
-    : new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthTest: false });
+  const material = tint(dashed
+    ? new THREE.LineDashedMaterial({ dashSize: dash, gapSize: gap, transparent: true, opacity, depthTest: false })
+    : new THREE.LineBasicMaterial({ transparent: true, opacity, depthTest: false }), tone);
   const line = new THREE.Line(geometry, material);
   if (dashed) line.computeLineDistances();
   line.layers.set(OVERLAY_LAYER);
@@ -81,7 +81,7 @@ export function Guides() {
     explodeGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(machine.guides.length * 6), 3));
     const explodeLines = new THREE.LineSegments(
       explodeGeometry,
-      new THREE.LineDashedMaterial({ color: PALETTE.ink, dashSize: 0.09, gapSize: 0.07, transparent: true, opacity: 0.5, depthTest: false }),
+      tint(new THREE.LineDashedMaterial({ dashSize: 0.09, gapSize: 0.07, transparent: true, opacity: 0.5, depthTest: false }), 'ink'),
     );
     explodeLines.layers.set(OVERLAY_LAYER);
     explodeLines.frustumCulled = false;
@@ -94,8 +94,10 @@ export function Guides() {
     scene.add(...centreLines, explodeLines);
     return () => {
       scene.remove(...centreLines, explodeLines);
-      centreLines.forEach((l) => l.geometry.dispose());
-      explodeLines.geometry.dispose();
+      for (const line of [...centreLines, explodeLines]) {
+        line.geometry.dispose();
+        (line.material as THREE.Material).dispose();
+      }
     };
   }, [scene, objects]);
 

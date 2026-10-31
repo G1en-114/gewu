@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { compositeFragment, compositeVertex, inkUniforms, PALETTE, rgb } from './ink';
+import { compositeFragment, compositeVertex, inkUniforms, paletteUniforms } from './ink';
 import { partDef } from './explode';
 import { SECTION_PLANE } from './Part';
 import { useStudio } from '../state';
@@ -68,11 +68,11 @@ export function InkRenderer({ lineWidth = 1.15, hatch = 1 }: { lineWidth?: numbe
         uNear: { value: 0.1 },
         uFar: { value: 100 },
         uOrtho: { value: 0 },
-        uInk: { value: rgb(PALETTE.ink) },
-        uFace: { value: rgb(PALETTE.face) },
+        uInk: paletteUniforms.uInk,
+        uFace: paletteUniforms.uFace,
         uHatch: { value: hatch },
         uSelId: { value: -1 },
-        uAccent: { value: rgb(PALETTE.rust) },
+        uAccent: paletteUniforms.uAccent,
       },
     });
     const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
