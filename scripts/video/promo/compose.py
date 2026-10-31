@@ -56,7 +56,9 @@ for i, (name, skip, length) in enumerate(TIMELINE):
 
 (out / "segments.txt").write_text("".join(f"file '{s.name}'" + chr(10) for s in segments), encoding="utf-8")
 final = root / "gewu-inkwork-promo.mp4"
-run(["-f", "concat", "-safe", "0", "-i", str(out / "segments.txt"), "-c", "copy", "-movflags", "+faststart", str(final)])
+# Re-encode once at the end: plain High profile 4:2:0 that every player opens (the caption overlays otherwise leave 4:4:4).
+run(["-f", "concat", "-safe", "0", "-i", str(out / "segments.txt"), "-c:v", "libx264", "-profile:v", "high", "-level", "4.1", "-pix_fmt", "yuv420p",
+     "-crf", "18", "-preset", "medium", "-movflags", "+faststart", str(final)])
 named = root / "格物-Inkwork-宣传片.mp4"
 final.replace(named)
 print(named)
