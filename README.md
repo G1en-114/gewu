@@ -78,4 +78,4 @@
 
 ## 展示视频
 
-`scripts/video/` 里的三个脚本做出三分钟展示视频（1080p30，按讲稿的起承转合配十四行诗字幕）：先 `npm run build && npx vite preview --port 5199`，再依次运行 `node scripts/video/record.mjs <输出目录>/rec`（用显卡逐场景录制真实画面）、`node scripts/video/cards.mjs <输出目录>/cards`（渲染片头、片尾和字幕）、`python scripts/video/compose.py <输出目录>`（ffmpeg 剪辑合成）。录制需要 Edge 和显卡，合成需要 ffmpeg。`scripts/video/promo/` 是同样用法的 99 秒宣传片版本：隐藏界面、只留画面，七个亮点各配一张章节字幕。
+`scripts/video/` 里的三个脚本做出三分钟展示视频（1080p30，按讲稿的起承转合配十四行诗字幕）：先 `npm run build && npx vite preview --port 5199`，再依次运行 `node scripts/video/record.mjs <输出目录>/rec`（用显卡逐场景录制真实画面）、`node scripts/video/cards.mjs <输出目录>/cards`（渲染片头、片尾和字幕）、`python scripts/video/compose.py <输出目录>`（ffmpeg 剪辑合成）。录制需要 Edge 和显卡，合成需要 ffmpeg。`scripts/video/promo/` 是同样用法的 99 秒宣传片版本：隐藏界面、只留画面，七个亮点各配一张章节字幕；`music.py` 用 numpy 合成原创配乐（D 大调钢琴琶音 + 铺底 + 章节铃声）。
