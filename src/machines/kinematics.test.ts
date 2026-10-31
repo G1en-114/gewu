@@ -1,0 +1,98 @@
+import { describe, expect, it } from 'vitest';
+import { diameter } from './aperture';
+import { crossheadX } from './engine/kinematics';
+import { ENGINE } from './engine/data';
+import { RATIO } from './gearbox';
+import { genevaState } from './geneva';
+import { wheelAngle } from './steering';
+
+describe('蒸汽机 · 曲柄连杆', () => {
+  it('十字头行程等于两倍曲柄半径', () => {
+    const xs = Array.from({ length: 721 }, (_, i) => crossheadX((i / 720) * Math.PI * 2));
+    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(2 * ENGINE.crankRadius, 6);
+  });
+});
+
+describe('转向系统 · 阿克曼梯形', () => {
+  // Kingpins at z = ±0.72 m, wheelbase 2.6 m (src/machines/steering).
+  const TRACK = 1.44;
+  const WHEELBASE = 2.6;
+
+  it('齿条居中时两轮都朝正前方', () => {
+    expect(wheelAngle(1, 0)).toBeCloseTo(0, 4);
+    expect(wheelAngle(-1, 0)).toBeCloseTo(0, 4);
+  });
+
+  it('左右对称', () => {
+    for (const s of [0.02, 0.04, 0.06]) expect(wheelAngle(1, s)).toBeCloseTo(-wheelAngle(-1, -s), 6);
+  });
+
+  it('两轮同向转，内侧轮转得更多，偏向阿克曼理想值', () => {
+    for (const s of [0.01, 0.03, 0.06]) {
+      const a = wheelAngle(1, s);
+      const b = wheelAngle(-1, s);
+      expect(Math.sign(a)).toBe(Math.sign(b));
+      const inner = Math.max(Math.abs(a), Math.abs(b));
+      const outer = Math.min(Math.abs(a), Math.abs(b));
+      expect(inner).toBeGreaterThan(outer);
+      // Ideal Ackermann: cot(outer) − cot(inner) = track / wheelbase. A trapezoid
+      // linkage only approximates it (the panel shows the gap), so ask for the
+      // right direction and a sizeable share of the ideal correction.
+      const share = (1 / Math.tan(outer) - 1 / Math.tan(inner)) / (TRACK / WHEELBASE);
+      expect(share).toBeGreaterThan(0.5);
+      expect(share).toBeLessThan(1.1);
+    }
+  });
+});
+
+describe('槽轮机构', () => {
+  it('拨盘转一圈，槽轮转 90°', () => {
+    for (const T of [-2, 0.3, 1.7]) {
+      expect(genevaState(T + Math.PI * 2).wheel - genevaState(T).wheel).toBeCloseTo(-Math.PI / 2, 6);
+    }
+  });
+
+  it('锁止时槽轮不动，转位时连续无跳变', () => {
+    const N = 4000;
+    let prev = genevaState(-Math.PI);
+    for (let i = 1; i <= N; i += 1) {
+      const cur = genevaState(-Math.PI + (i / N) * Math.PI * 2);
+      if (!cur.moving && !prev.moving) expect(cur.wheel).toBeCloseTo(prev.wheel, 9);
+      expect(Math.abs(cur.wheel - prev.wheel)).toBeLessThan(0.01);
+      prev = cur;
+    }
+  });
+});
+
+describe('手动变速箱 · 速比', () => {
+  // The panel shows input : output, i.e. 1 / RATIO.
+  const shown = (g: keyof typeof RATIO) => 1 / RATIO[g];
+
+  it('与说明一致：1 档 3.59，5 档 0.80，4 档直接档', () => {
+    expect(shown('1')).toBeCloseTo(3.59, 2);
+    expect(shown('4')).toBe(1);
+    expect(shown('5')).toBeCloseTo(0.8, 2);
+  });
+
+  it('1–5 档速比依次减小，倒档反转，空档不出力', () => {
+    const forward = (['1', '2', '3', '4', '5'] as const).map(shown);
+    forward.slice(1).forEach((r, i) => expect(r).toBeLessThan(forward[i]));
+    expect(RATIO.R).toBeLessThan(0);
+    expect(RATIO.N).toBe(0);
+  });
+});
+
+describe('镜头光圈', () => {
+  const f = (k: number) => 50 / diameter(k);
+
+  it('孔径随收拢单调变小', () => {
+    for (let k = 0; k < 1; k += 0.05) expect(diameter(k + 0.05)).toBeLessThan(diameter(k));
+  });
+
+  it('全开约 f/2，收到底约 f/16', () => {
+    expect(f(0)).toBeGreaterThan(1.8);
+    expect(f(0)).toBeLessThan(2.2);
+    expect(f(1)).toBeGreaterThan(14);
+    expect(f(1)).toBeLessThan(18);
+  });
+});
