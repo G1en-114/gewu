@@ -1,0 +1,63 @@
+"""Cuts the recorded scenes to the timeline, fades between them through paper,
+and lays the sonnet captions over the top. Usage: python compose.py <video dir>"""
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+rec, cards, out = root / "rec", root / "cards", root / "out"
+out.mkdir(exist_ok=True)
+PAPER = "0xf4f0e7"
+FADE = 0.4
+
+# (scene, seconds to skip at the start of the recording, length in the final cut)
+TIMELINE = [
+    ("title", 0, 6), ("engine", 1.5, 34), ("section", 0.6, 15), ("ortho", 0.6, 15), ("blueprint", 0.6, 10),
+    ("landing", 0.6, 15), ("teardown", 0.6, 15), ("gear", 0.6, 8), ("brake", 0.6, 16), ("orrery", 0.0, 16),
+    ("assemble", 0.6, 10), ("catalogue", 0.6, 10), ("end", 0, 10),
+]
+assert sum(t[2] for t in TIMELINE) == 180
+
+
+def run(args):
+    r = subprocess.run(["ffmpeg", "-v", "error", "-y", *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if r.returncode:
+        sys.exit(f"ffmpeg failed ({r.returncode}): {r.stderr[-1500:]}")
+
+
+captions = json.loads((cards / "captions.json").read_text(encoding="utf-8"))
+
+segments = []
+at = 0.0
+for i, (name, skip, length) in enumerate(TIMELINE):
+    seg = out / f"{i:02d}-{name}.mp4"
+    segments.append(seg)
+    t_start, t_end = at, at + length
+    at = t_end
+    fades = f"fade=t=in:st=0:d={FADE}:color={PAPER},fade=t=out:st={length - FADE}:d={FADE}:color={PAPER}"
+    if name in ("title", "end"):
+        # Still cards: the title fades in from paper, the end card fades out.
+        f = f"fade=t=in:st=0:d=1.2:color={PAPER}" if name == "title" else f"fade=t=in:st=0:d={FADE}:color={PAPER},fade=t=out:st={length - 1.5}:d=1.5:color={PAPER}"
+        run(["-loop", "1", "-t", str(length), "-i", str(cards / f"{name}.png"), "-vf", f"fps=30,format=yuv420p,{f}", "-c:v", "libx264", "-crf", "17", "-preset", "medium", str(seg)])
+        continue
+    # Captions that fall inside this scene, in the scene's own time.
+    mine = [(k, max(c[0], t_start) - t_start, min(c[1], t_end) - t_start) for k, c in enumerate(captions) if c[0] < t_end and c[1] > t_start]
+    inputs = ["-f", "concat", "-safe", "0", "-i", str(rec / name / "list.ffconcat")]
+    graph = [f"[0:v]trim=start={skip}:duration={length},setpts=PTS-STARTPTS,fps=30,scale=1920:1080,format=yuv420p[b0]"]
+    last = "[b0]"
+    for j, (k, a, b) in enumerate(mine):
+        d = b - a
+        inputs += ["-loop", "1", "-t", f"{d:.3f}", "-i", str(cards / f"cap{k:02d}.png")]
+        graph.append(f"[{j + 1}:v]format=rgba,fade=t=in:st=0:d=0.6:alpha=1,fade=t=out:st={d - 0.6:.3f}:d=0.6:alpha=1,setpts=PTS-STARTPTS+{a:.3f}/TB[c{j}]")
+        graph.append(f"{last}[c{j}]overlay=0:0:eof_action=pass:enable='between(t,{a:.3f},{b:.3f})'[b{j + 1}]")
+        last = f"[b{j + 1}]"
+    graph.append(f"{last}{fades},format=yuv420p[out]")
+    run([*inputs, "-filter_complex", ";".join(graph), "-map", "[out]", "-t", str(length), "-c:v", "libx264", "-crf", "17", "-preset", "medium", str(seg)])
+
+(out / "segments.txt").write_text("".join(f"file '{s.name}'" + chr(10) for s in segments), encoding="utf-8")
+final = root / "gewu-inkwork-demo.mp4"
+run(["-f", "concat", "-safe", "0", "-i", str(out / "segments.txt"), "-c", "copy", "-movflags", "+faststart", str(final)])
+named = root / "格物-Inkwork-展示视频.mp4"
+final.replace(named)
+print(named)

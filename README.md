@@ -75,3 +75,7 @@
 ## 用 AI 新建机器
 
 仓库带了一个 Claude Code 技能 `.claude/skills/new-machine/`：在这个项目里对 Claude 说“加一台 X”，它会按 `SKILL.md` 的流程（定题与坐标 → 零件表与拆解时序 → 用 kit 建模 → 联动与单元测试 → 子组件分级 → 注册 → 自检截图逐张检查 → 缩略图 → 提交）做出一台新机器；`template.tsx` 是可直接复制的最小骨架。
+
+## 展示视频
+
+`scripts/video/` 里的三个脚本做出三分钟展示视频（1080p30，按讲稿的起承转合配十四行诗字幕）：先 `npm run build && npx vite preview --port 5199`，再依次运行 `node scripts/video/record.mjs <输出目录>/rec`（用显卡逐场景录制真实画面）、`node scripts/video/cards.mjs <输出目录>/cards`（渲染片头、片尾和字幕）、`python scripts/video/compose.py <输出目录>`（ffmpeg 剪辑合成）。录制需要 Edge 和显卡，合成需要 ffmpeg。
