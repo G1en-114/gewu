@@ -2,7 +2,7 @@
 
 面向《工程制图》教学的线稿风格 3D 装配体图版。
 
-运行：`npm install && npm run dev`；构建：`npm run build`。计划与进度见 `docs/PLAN.md`。
+运行：`npm install && npm run dev`；构建：`npm run build`；单元测试：`npm test`。计划与进度见 `docs/PLAN.md`。
 
 字体是本地子集（`public/fonts`），新增中文文字后运行 `python scripts/subset-fonts.py <源字体目录>` 重新生成。
 
