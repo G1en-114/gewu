@@ -5,6 +5,7 @@ import { ENGINE } from './engine/data';
 import { RATIO } from './gearbox';
 import { genevaState } from './geneva';
 import { wheelAngle } from './steering';
+import { CENTRE_DISTANCE, moduleFor, moonPhase, PAIRS, periodOf, synodicMonthsPerYear, TRUE_PERIOD, TRUE_SYNODIC_PER_YEAR } from './orrery/train';
 
 describe('蒸汽机 · 曲柄连杆', () => {
   it('十字头行程等于两倍曲柄半径', () => {
@@ -94,5 +95,28 @@ describe('镜头光圈', () => {
     expect(f(0)).toBeLessThan(2.2);
     expect(f(1)).toBeGreaterThan(14);
     expect(f(1)).toBeLessThan(18);
+  });
+});
+
+describe('太阳系仪 · 齿轮比', () => {
+  const planets = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn'] as const;
+
+  it('每颗行星的周期与真实公转周期相差不到 0.5%', () => {
+    for (const p of planets) expect(Math.abs(periodOf(p) - TRUE_PERIOD[p]) / TRUE_PERIOD[p]).toBeLessThan(0.005);
+  });
+
+  it('月球每年 12.375 个朔望月，与真实值相差不到 0.1%', () => {
+    expect(Math.abs(synodicMonthsPerYear() - TRUE_SYNODIC_PER_YEAR) / TRUE_SYNODIC_PER_YEAR).toBeLessThan(0.001);
+  });
+
+  it('每对齿轮按各自模数正好跨过同一个中心距', () => {
+    for (const [a, b] of Object.values(PAIRS)) expect(((a + b) * moduleFor(a, b)) / 2).toBeCloseTo(CENTRE_DISTANCE, 9);
+  });
+
+  it('月相：0 新月，π 满月，π/2 上弦', () => {
+    expect(moonPhase(0)).toBe('新月');
+    expect(moonPhase(Math.PI)).toBe('满月');
+    expect(moonPhase(Math.PI / 2)).toBe('上弦月');
+    expect(moonPhase(-Math.PI / 2)).toBe('下弦月');
   });
 });
