@@ -6,6 +6,7 @@ import { BICYCLE_LEVELS, bicycle } from './bicycle';
 import { brake } from './brake';
 import { centrifugal } from './centrifugal';
 import { cistern } from './cistern';
+import { drill } from './drill';
 import { elevator } from './elevator';
 import { EXCAVATOR_LEVELS, excavator } from './excavator';
 import { gearbox } from './gearbox';
@@ -38,6 +39,7 @@ import type { MachineDef } from './types';
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, centrifugal, geneva, micrometer, gyro, orrery] },
+  { name: '机床', machines: [drill] },
   { name: '日常器物', machines: [lock, pen, cistern, aperture, iphone, watch, piano, printer, bicycle] },
   { name: '动力传动', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, brake, wind] },
   { name: '大型装备', machines: [helicopter, elevator, excavator, modelT, b747, saturnV] },

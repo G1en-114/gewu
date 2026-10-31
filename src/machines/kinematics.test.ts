@@ -5,6 +5,7 @@ import { ENGINE } from './engine/data';
 import { RATIO } from './gearbox';
 import { genevaState } from './geneva';
 import { wheelAngle } from './steering';
+import { DRILL, drillFeedTravel, MOTOR_RADII, SPEEDS, SPINDLE_RADII } from './drill';
 import { CENTRE_DISTANCE, moduleFor, moonPhase, PAIRS, periodOf, synodicMonthsPerYear, TRUE_PERIOD, TRUE_SYNODIC_PER_YEAR } from './orrery/train';
 
 describe('蒸汽机 · 曲柄连杆', () => {
@@ -118,5 +119,35 @@ describe('太阳系仪 · 齿轮比', () => {
     expect(moonPhase(Math.PI)).toBe('满月');
     expect(moonPhase(Math.PI / 2)).toBe('上弦月');
     expect(moonPhase(-Math.PI / 2)).toBe('下弦月');
+  });
+});
+
+describe('台式钻床 · 五级塔轮与进给', () => {
+  it('五档转速从 365 到 3150 r/min，与公开规格一致', () => {
+    expect(SPEEDS[0]).toBe(365);
+    expect(SPEEDS[SPEEDS.length - 1]).toBe(3150);
+    expect(DRILL.travel).toBe(125);
+  });
+
+  it('每档的塔轮半径比按电机 1400 r/min 正好给出该档转速', () => {
+    SPEEDS.forEach((rpm, i) => {
+      expect((DRILL.motorRpm * MOTOR_RADII[i]) / SPINDLE_RADII[i]).toBeCloseTo(rpm, 6);
+    });
+  });
+
+  it('配对塔轮半径之和不变，所以换挡不用换皮带长度', () => {
+    const sums = MOTOR_RADII.map((r, i) => r + SPINDLE_RADII[i]);
+    sums.forEach((sum) => expect(sum).toBeCloseTo(sums[0], 9));
+  });
+
+  it('进给行程 0–125 mm，回程不越过两端', () => {
+    expect(drillFeedTravel(0)).toBe(0);
+    expect(drillFeedTravel(3.8)).toBeCloseTo(DRILL.travel, 6);
+    expect(drillFeedTravel(6.9)).toBeCloseTo(0, 6);
+    for (let i = 0; i <= 700; i += 1) {
+      const s = drillFeedTravel((i / 100) * 7);
+      expect(s).toBeGreaterThanOrEqual(0);
+      expect(s).toBeLessThanOrEqual(DRILL.travel + 1e-9);
+    }
   });
 });
