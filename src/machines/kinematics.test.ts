@@ -6,6 +6,7 @@ import { RATIO } from './gearbox';
 import { genevaState } from './geneva';
 import { wheelAngle } from './steering';
 import { DRILL, drillFeedTravel, MOTOR_RADII, SPEEDS, SPINDLE_RADII } from './drill';
+import { SHA, radiusToStroke, rockerPhi, strokeArcs, strokeToRadius } from './shaper/layout';
 import { CENTRE_DISTANCE, moduleFor, moonPhase, PAIRS, periodOf, synodicMonthsPerYear, TRUE_PERIOD, TRUE_SYNODIC_PER_YEAR } from './orrery/train';
 
 describe('蒸汽机 · 曲柄连杆', () => {
@@ -149,5 +150,26 @@ describe('台式钻床 · 五级塔轮与进给', () => {
       expect(s).toBeGreaterThanOrEqual(0);
       expect(s).toBeLessThanOrEqual(DRILL.travel + 1e-9);
     }
+  });
+});
+
+describe('牛头刨床 · 摆杆机构', () => {
+  it('行程调到 630 mm 后，曲柄半径与行程能互相回算', () => {
+    const radius = strokeToRadius(630);
+    expect(radiusToStroke(radius)).toBeCloseTo(630, 6);
+    expect(strokeToRadius(630)).toBeLessThan(SHA.crank.pitchR);
+  });
+
+  it('曲柄转一圈，摆杆上端带着滑枕走完设定行程', () => {
+    const radius = strokeToRadius(630);
+    const xs = Array.from({ length: 1441 }, (_, i) => SHA.crank.l * Math.sin(rockerPhi((i / 1440) * Math.PI * 2, radius)));
+    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(630, 2);
+  });
+
+  it('切削行程比返回行程长：急回特性', () => {
+    const arcs = strokeArcs(strokeToRadius(630));
+    expect(arcs.cutting + arcs.returning).toBeCloseTo(Math.PI * 2, 9);
+    expect(arcs.cutting / arcs.returning).toBeGreaterThan(1.25);
+    expect(arcs.cutting / arcs.returning).toBeLessThan(1.55);
   });
 });

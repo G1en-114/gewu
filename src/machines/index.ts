@@ -7,6 +7,7 @@ import { brake } from './brake';
 import { centrifugal } from './centrifugal';
 import { cistern } from './cistern';
 import { drill } from './drill';
+import { shaper, SHAPER_LEVELS } from './shaper';
 import { elevator } from './elevator';
 import { EXCAVATOR_LEVELS, excavator } from './excavator';
 import { gearbox } from './gearbox';
@@ -39,7 +40,7 @@ import type { MachineDef } from './types';
 /** The switcher's shelves. */
 export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, centrifugal, geneva, micrometer, gyro, orrery] },
-  { name: '机床', machines: [drill] },
+  { name: '机床', machines: [drill, shaper] },
   { name: '日常器物', machines: [lock, pen, cistern, aperture, iphone, watch, piano, printer, bicycle] },
   { name: '动力传动', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, brake, wind] },
   { name: '大型装备', machines: [helicopter, elevator, excavator, modelT, b747, saturnV] },
@@ -48,7 +49,7 @@ export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
 
 /** Every assembly, including subassemblies reached only by opening a part. */
-const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS, ...WIND_LEVELS, ...HELICOPTER_LEVELS, ...B747_LEVELS, ...ORRERY_LEVELS];
+const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS, ...WIND_LEVELS, ...HELICOPTER_LEVELS, ...B747_LEVELS, ...ORRERY_LEVELS, ...SHAPER_LEVELS];
 
 export const allMachines = () => ALL;
 
