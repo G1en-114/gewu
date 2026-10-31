@@ -161,7 +161,7 @@ function tube(r: number, x0: number, x1: number): Array<[number, number]> {
   return [[r - 0.03, x0], [r, x0], [r, x1], [r - 0.03, x1]];
 }
 
-const PARTS: PartDef[] = [
+export const TURBOFAN_PARTS: PartDef[] = [
   { id: 'nacelle', index: 1, name: '进气道与风扇罩', en: 'Inlet & Fan Cowl', role: '整流 · 包容', material: '铝合金 / 复合材料', description: '圆润的唇口把空气平顺地引向风扇。内壁贴着吸声衬垫降低噪声；风扇罩可以向两侧掀开维护。', explode: [0, 2.7, 0], stage: [0.05, 0.15] },
   { id: 'fan', index: 2, name: '风扇', en: 'Fan', role: '产生大部分推力', material: '钛合金 / 复合材料', description: '24 片宽弦叶片，直径约 1.55 米。吸进的空气约 5/6 不进核心机，直接从外涵道吹出去——大涵道比发动机约八成推力来自风扇。', explode: [-1.4, 0, 0], stage: [0.22, 0.32] },
   { id: 'fan-case', index: 3, name: '分流环与出口导叶', en: 'Splitter & Outlet Guide Vanes', role: '分流 · 消除旋流', material: '复合材料', description: '分流环把气流分成内外两路；外涵道里的一圈导叶把风扇甩出的旋转气流拉直，变成直推。', explode: [-1.0, 0, 0], stage: [0.28, 0.38] },
@@ -205,7 +205,7 @@ export const turbofan: MachineDef = level({
   summary: '13 种零件 · 风扇、压气机、燃烧室、涡轮，会转，剖开看流道',
   drawingNo: 'GW-WS-00',
   scale: '1 : 20',
-  parts: PARTS,
+  parts: TURBOFAN_PARTS,
   boltSets: {},
   neighbours: {},
   guides: [

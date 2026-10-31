@@ -11,6 +11,7 @@ import { EXCAVATOR_LEVELS, excavator } from './excavator';
 import { gearbox } from './gearbox';
 import { geneva } from './geneva';
 import { gyro } from './gyro';
+import { B747_LEVELS, b747 } from './b747';
 import { HELICOPTER_LEVELS, helicopter } from './helicopter';
 import { iphone } from './iphone';
 import { micrometer } from './micrometer';
@@ -38,15 +39,20 @@ export const GROUPS: Array<{ name: string; machines: MachineDef[] }> = [
   { name: '基础机构', machines: [jack, vise, valve, pump, centrifugal, geneva, micrometer, gyro] },
   { name: '日常器物', machines: [lock, pen, cistern, aperture, iphone, watch, piano, printer, bicycle] },
   { name: '动力传动', machines: [motor, ice, stirling, engine, turbofan, gearbox, steering, brake, wind] },
-  { name: '大型装备', machines: [helicopter, elevator, excavator, modelT, saturnV] },
+  { name: '大型装备', machines: [helicopter, elevator, excavator, modelT, b747, saturnV] },
 ];
 
 export const MACHINES: MachineDef[] = GROUPS.flatMap((g) => g.machines);
 
 /** Every assembly, including subassemblies reached only by opening a part. */
-const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS, ...WIND_LEVELS, ...HELICOPTER_LEVELS];
+const ALL: MachineDef[] = [...MACHINES, ...MODEL_T_LEVELS, ...SATURN_V_LEVELS, ...BICYCLE_LEVELS, ...EXCAVATOR_LEVELS, ...WIND_LEVELS, ...HELICOPTER_LEVELS, ...B747_LEVELS];
 
 export const allMachines = () => ALL;
+
+// For the scripts in scripts/: every assembly, as the app actually registers it.
+if (typeof window !== 'undefined') {
+  (window as unknown as { gewu: unknown }).gewu = { assemblies: () => ALL.map((m) => ({ id: m.id, parent: m.parent ?? null })) };
+}
 export const hasMachine = (id: string) => ALL.some((m) => m.id === id);
 
 export function machineById(id: string): MachineDef {
