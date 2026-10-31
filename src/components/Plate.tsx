@@ -3,6 +3,7 @@ import { allMachines, GROUPS, lineage, MACHINES, machineById, useMachine } from 
 import type { MachineDef } from '../machines/types';
 import { useCatalogue } from './Catalogue';
 import { useGuide } from './Guide';
+import { useTree } from './Tree';
 import { aimAt, clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 import { useTheme } from '../theme';
 
@@ -37,6 +38,7 @@ export function TitleColumn() {
         <div className="mast-buttons">
           <button type="button" className="mast-catalogue" onClick={() => useGuide.getState().set(true)}>说明</button>
           <button type="button" className="mast-catalogue" onClick={() => useCatalogue.getState().set(true)}>目录</button>
+          <button type="button" className="mast-catalogue" onClick={() => useTree.getState().set(!useTree.getState().open)}>结构树</button>
         </div>
       </header>
 
@@ -132,6 +134,12 @@ const EXPORTS: Array<[ExportKind, string, string]> = [
   ['json', '零件数据', '零件表与讲解步骤，JSON'],
 ];
 
+/** Opens the structure tree beside the plate. */
+function TreeToggle() {
+  const { open, set } = useTree();
+  return <button type="button" className={`meta-action meta-tree${open ? ' is-on' : ''}`} aria-pressed={open} onClick={() => set(!open)} title="结构树：所有层级的组件与零件">结构树</button>;
+}
+
 export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: ExportKind) => void; busy: boolean; recording: number | null }) {
   const { view, viewNonce, set } = useStudio();
   const machine = useMachine();
@@ -139,6 +147,7 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: Expo
     <nav className="plate-meta" aria-label="视图">
       <button type="button" className="meta-catalogue" onClick={() => useCatalogue.getState().set(true)} title="全部机器一览">目录</button>
       <button type="button" className="meta-action meta-guide" onClick={() => useGuide.getState().set(true)} title="怎么使用">说明</button>
+      <TreeToggle />
       <div className="views" role="group" aria-label="视图">
         {VIEWS.map(([id, label]) => (
           <button key={id} type="button" aria-pressed={view === id} className={view === id ? 'is-on' : ''} onClick={() => set({ view: id, focus: null, viewNonce: viewNonce + 1 })}>{label}</button>

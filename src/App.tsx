@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Catalogue } from './components/Catalogue';
 import { Guide } from './components/Guide';
+import { Tree } from './components/Tree';
 import { PartsLegend, PlateMeta, TitleColumn } from './components/Plate';
 import { currentMachine, hasMachine, useMachine } from './machines';
 import { CameraRig, Guides, InkRenderer, MotionDriver } from './scene';
@@ -154,6 +155,7 @@ export default function App() {
       <PartsLegend />
       <Catalogue />
       <Guide />
+      <Tree />
       <p className="stage-hint">{drawingMode ? '第一角画法 · 悬停或点选零件查看投影关系' : moveMode ? '按住零件拖动来挪动 · 拖空白处旋转 · 选中后可调大小' : '拖动旋转 · 滚轮缩放 · 点选零件'}</p>
     </div>
   );
