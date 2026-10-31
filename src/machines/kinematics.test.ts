@@ -7,6 +7,7 @@ import { genevaState } from './geneva';
 import { wheelAngle } from './steering';
 import { DRILL, drillFeedTravel, MOTOR_RADII, SPEEDS, SPINDLE_RADII } from './drill';
 import { SHA, radiusToStroke, rockerPhi, strokeArcs, strokeToRadius } from './shaper/layout';
+import { addColumn, CAMS, CARDS, cycle, DIGITS, ENGINE_RATIO, HALF, HALF_PAIRS, halfStep, initialColumns, isReceiver, MOD, signed, valueOf, warningUp, wheelReading, wrap } from './tower/calc';
 import { CENTRE_DISTANCE, moduleFor, moonPhase, PAIRS, periodOf, synodicMonthsPerYear, TRUE_PERIOD, TRUE_SYNODIC_PER_YEAR } from './orrery/train';
 
 describe('蒸汽机 · 曲柄连杆', () => {
@@ -171,5 +172,88 @@ describe('牛头刨床 · 摆杆机构', () => {
     expect(arcs.cutting + arcs.returning).toBeCloseTo(Math.PI * 2, 9);
     expect(arcs.cutting / arcs.returning).toBeGreaterThan(1.25);
     expect(arcs.cutting / arcs.returning).toBeLessThan(1.55);
+  });
+});
+
+describe('差分演算塔 · 运算', () => {
+  it('每张卡片：流水线跑 40 拍，D0 每拍都等于 f(n)（八位，补码）', () => {
+    for (const card of CARDS) {
+      let cols = initialColumns(card);
+      expect(cols[0]).toBe(wrap(card.f(0)));
+      for (let n = 1; n <= 40; n += 1) {
+        cols = cycle(cols);
+        expect(cols[0]).toBe(wrap(card.f(n)));
+      }
+    }
+  });
+
+  it('逐位加法 + 螺旋进位与整数加法一致（含连续进位 99999999 + 1）', () => {
+    const cases: Array<[number, number]> = [[99999999, 1], [12345678, 87654322], [50000000, 50000000], [9, 1], [19999990, 10], [0, 0]];
+    for (let i = 0; i < 200; i += 1) cases.push([Math.floor(Math.random() * MOD), Math.floor(Math.random() * MOD)]);
+    for (const [a, b] of cases) expect(valueOf(addColumn(a, b).after)).toBe((a + b) % MOD);
+    const ripple = addColumn(99999999, 1);
+    expect(ripple.warn.filter(Boolean)).toHaveLength(1);
+    expect(ripple.carryIn.filter(Boolean)).toHaveLength(7);
+  });
+
+  it('负数存成补码：弹道卡的二阶差分是 −9800', () => {
+    const cols = initialColumns(CARDS.find((c) => c.id === 'shell')!);
+    expect(cols[2]).toBe(MOD - 9800);
+    expect(signed(cols[2])).toBe(-9800);
+  });
+
+  it('六次幂卡：第六列恒为 720，二拍之内不被改写', () => {
+    let cols = initialColumns(CARDS.find((c) => c.id === 'sixth')!);
+    for (let n = 0; n < 10; n += 1) {
+      expect(cols[6]).toBe(720);
+      cols = cycle(cols);
+    }
+  });
+
+  it('前半拍偶数列收、后半拍奇数列收；给数的列在同一半拍里不动', () => {
+    const step = halfStep(initialColumns(CARDS[1]), 0);
+    step.additions.forEach((a, c) => expect(a !== null).toBe(isReceiver(0, c)));
+    for (const [, g] of HALF_PAIRS[0]) expect(step.after[g]).toBe(step.before[g]);
+  });
+
+  it('数字轮读数：加法结束时等于加完的数字，进位窗口结束时等于结果', () => {
+    const a = addColumn(19999990, 10);
+    for (let j = 0; j < DIGITS; j += 1) {
+      expect(wheelReading(a, j, HALF.add[1]) % 10).toBeCloseTo(a.afterAdd[j], 9);
+      expect(wheelReading(a, j, 1) % 10).toBeCloseTo(a.after[j], 9);
+    }
+  });
+
+  it('警示杆在数字轮越过 9 → 0 的那一刻抬起，进位取走后落下', () => {
+    const a = addColumn(7, 5);
+    expect(warningUp(a, 0, HALF.add[0])).toBe(0);
+    expect(warningUp(a, 0, HALF.carry[0])).toBeCloseTo(1, 6);
+    expect(warningUp(a, 0, 1)).toBe(0);
+    expect(warningUp(a, 1, HALF.carry[0])).toBe(0);
+  });
+
+  it('减速齿轮 16 / 96：曲轴转六圈，主竖轴转一圈 = 算一行', () => {
+    expect(ENGINE_RATIO).toBe(6);
+  });
+});
+
+describe('差分演算塔 · 凸轮鼓', () => {
+  it('解锁凸轮抬起的区间覆盖了加法和进位，两组凸轮前后半拍互不重叠', () => {
+    const a = CAMS.find((c) => c.id === 'lock-a')!;
+    const b = CAMS.find((c) => c.id === 'lock-b')!;
+    for (let i = 0; i <= 1000; i += 1) {
+      const t = i / 1000;
+      expect(Math.min(a.lift(t), b.lift(t))).toBeLessThan(1e-9);
+    }
+    expect(a.lift(0.15)).toBeCloseTo(1, 6);
+    expect(a.lift(0.35)).toBeCloseTo(1, 6);
+    expect(b.lift(0.65)).toBeCloseTo(1, 6);
+  });
+
+  it('压印在字轮对好之后、进纸之前', () => {
+    const strike = CAMS.find((c) => c.id === 'strike')!;
+    const peak = Array.from({ length: 1001 }, (_, i) => i / 1000).reduce((best, t) => (strike.lift(t) > strike.lift(best) ? t : best), 0);
+    expect(peak).toBeGreaterThan(0.6);
+    expect(peak).toBeLessThan(0.84);
   });
 });
