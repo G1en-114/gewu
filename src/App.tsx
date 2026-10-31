@@ -137,7 +137,7 @@ export default function App() {
         >
           <MotionDriver />
           {Driver && <Driver key={`driver-${machine.id}`} />}
-          <group key={machine.id} scale={machine.unit ?? 1}>
+          <group key={machine.id} name="machine-root" scale={machine.unit ?? 1}>
             <Model />
           </group>
           <Guides />

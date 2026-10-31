@@ -6,6 +6,8 @@ export interface StudioState {
   machineId: string;
   explode: number;
   section: boolean;
+  /** How deep the section cuts, 0 (skims the near face) – 1 (leaves only the far skin); 0.5 is the centre line. */
+  sectionDepth: number;
   running: boolean;
   view: ViewMode;
   /** Optional close-up within the perspective view (a key of the machine's camera foci). */
@@ -40,6 +42,7 @@ export const useStudio = create<StudioState>((set) => ({
   machineId: 'jack',
   explode: 0,
   section: false,
+  sectionDepth: 0.5,
   running: true,
   view: 'perspective',
   focus: null,
@@ -110,7 +113,7 @@ export function restoreAll(first: { state: { running: boolean; select: string | 
   motion.local = 0;
   first.apply?.();
   useStudio.setState((s) => ({
-    explode: 0, deep: false, section: false, running: first.state.running, focus: first.state.focus,
+    explode: 0, deep: false, section: false, sectionDepth: 0.5, running: first.state.running, focus: first.state.focus,
     viewNonce: s.viewNonce + 1, selected: first.state.select, hovered: null, localExplode: null, step: 0, moveMode: false,
     labels: typeof window === 'undefined' || window.innerWidth >= 700, hiddenLines: true, projection: true, editNonce: s.editNonce + 1, hidden: [], solo: null,
   }));
@@ -139,7 +142,7 @@ export function selectMachine(id: string) {
   motion.deep = 0;
   partEdits.clear();
   useStudio.getState().set({
-    machineId: id, explode: 0, section: false, running: true, view: 'perspective', focus: null,
+    machineId: id, explode: 0, section: false, sectionDepth: 0.5, running: true, view: 'perspective', focus: null,
     viewNonce: viewNonce + 1, selected: null, hovered: null, localExplode: null, step: 0, deep: false, hidden: [], solo: null,
   });
 }

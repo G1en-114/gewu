@@ -123,11 +123,31 @@ export function Guides() {
   return null;
 }
 
+/** Depth range of the assembled machine along the section normal (world z), measured once per machine. */
+const cutRange = { machine: '', near: 1.1, far: -1.1 };
+const cutBox = new THREE.Box3();
+
+/**
+ * Where the section plane sits for a cut depth: 0 skims the near (camera) side,
+ * 0.5 is the centre line z = 0 every machine is modelled around, 1 leaves only
+ * the far skin. The two halves are scaled separately so 0.5 stays on z = 0.
+ */
+export function sectionConstant(depth: number) {
+  const { near, far } = cutRange;
+  const span = Math.max(near - far, 1e-3);
+  const n = Math.max(near, span * 0.02);
+  const f = Math.min(far, -span * 0.02);
+  // Never quite reach either skin, so a sliver of the part always remains to read.
+  const d = THREE.MathUtils.clamp(depth, 0.02, 0.98);
+  return d <= 0.5 ? n * (1 - d * 2) : f * ((d - 0.5) * 2);
+}
+
 /** Eases the explode, local explode and section sweep toward the store. */
 export function MotionDriver() {
+  const scene = useThree((s) => s.scene);
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
-    const { explode, section, localExplode, deep } = useStudio.getState();
+    const { explode, section, sectionDepth, localExplode, deep, machineId } = useStudio.getState();
     motion.deep += Math.sign((deep ? 1 : 0) - motion.deep) * Math.min(Math.abs((deep ? 1 : 0) - motion.deep), dt * 0.2);
     // Constant-rate easing keeps the staged teardown evenly paced.
     const diff = explode - motion.explode;
@@ -141,10 +161,25 @@ export function MotionDriver() {
       motion.local = Math.min(1, motion.local + dt * 0.55);
     }
 
-    const cutTarget = section ? 0 : 1.1;
-    const current = SECTION_PLANE.constant > 50 ? 1.1 : SECTION_PLANE.constant;
+    // Measure the machine once it has assembled itself.
+    if (cutRange.machine !== machineId && motion.explode < 0.01 && motion.local === 0) {
+      const root = scene.getObjectByName('machine-root');
+      if (root) {
+        cutBox.setFromObject(root);
+        if (!cutBox.isEmpty()) {
+          cutRange.machine = machineId;
+          cutRange.near = cutBox.max.z;
+          cutRange.far = cutBox.min.z;
+        }
+      }
+    }
+
+    // Off is just beyond the near skin; past it the plane is parked far away.
+    const off = Math.max(cutRange.near, 0) + 0.1;
+    const cutTarget = section ? sectionConstant(sectionDepth) : off;
+    const current = SECTION_PLANE.constant > 50 ? off : SECTION_PLANE.constant;
     const next = current + (cutTarget - current) * (1 - Math.exp(-dt * 3));
-    SECTION_PLANE.constant = !section && next > 1.08 ? 100 : next;
+    SECTION_PLANE.constant = !section && next > off - 0.02 ? 100 : next;
   }, -1);
   return null;
 }

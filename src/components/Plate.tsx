@@ -10,7 +10,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 export function TitleColumn() {
   const machine = useMachine();
-  const { step, explode, running, section, labels, view, hiddenLines, projection, moveMode, deep, hidden, solo, set } = useStudio();
+  const { step, explode, running, section, sectionDepth, labels, view, hiddenLines, projection, moveMode, deep, hidden, solo, set } = useStudio();
   const drawingMode = view === 'drawing';
   const { Controls, Toggles } = machine;
   const chain = lineage(machine);
@@ -77,6 +77,13 @@ export function TitleColumn() {
           <input type="range" min={0} max={1} step={0.01} value={explode} onChange={(e) => set({ explode: Number(e.target.value) })} />
           <output>{Math.round(explode * 100)}%</output>
         </label>
+        {section && (
+          <label className="slider" title="拖动剖切面：0% 刚切到表皮，50% 沿中线，100% 只留最后一层">
+            <span>剖切</span>
+            <input type="range" min={0} max={1} step={0.01} value={sectionDepth} onChange={(e) => set({ sectionDepth: Number(e.target.value) })} />
+            <output>{Math.round(sectionDepth * 100)}%</output>
+          </label>
+        )}
         <Stepper machine={machine} explode={explode} />
         {Controls && <Controls />}
         <div className="toggles">
