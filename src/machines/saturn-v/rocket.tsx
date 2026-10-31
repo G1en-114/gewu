@@ -200,6 +200,6 @@ export const rocketLevel = level({
   ],
   centreLines: [[[-4, 0, 0], [116, 0, 0], 5.5]],
   steps: STEPS,
-  camera: { target: [55, 0, 0], offset: [24, 58, 185], orthoDistance: 900, exploded: { target: [80, 0, 0], scale: 1.4 }, deep: { target: [86, -2, 0], scale: 1.95 } },
+  camera: { target: [55, 0, 0], offset: [24, 58, 185], orthoDistance: 900, exploded: { target: [82, 0, 0], scale: 1.9 }, deep: { target: [86, -2, 0], scale: 1.95 } },
   Model: Rocket,
 });

@@ -210,7 +210,7 @@ export function Movement() {
           </group>
           <Cyl c={[0, 0, zOf(2.9)]} r={0.14} len={2.4} axis="z" seg={10} />
         </Turning>
-        <Callout id="pallet" p={at(PAL[0] + 0.6, PAL[1] + 1.4, 2.8)} />
+        <Callout id="pallet" p={at((PAL[0] + BAL[0]) / 2, (PAL[1] + BAL[1]) / 2, 2.8)} />
       </Part>
 
       <Part id="balance">
