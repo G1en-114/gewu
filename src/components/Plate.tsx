@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMachines, GROUPS, lineage, MACHINES, machineById, useMachine } from '../machines';
 import type { MachineDef } from '../machines/types';
 import { useCatalogue } from './Catalogue';
@@ -32,11 +32,13 @@ export function TitleColumn() {
         <p className="mast-en">MECHANISM STUDIO</p>
         <p className="mast-zh">工程制图 · 交互拆解</p>
         <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(root) + 1)}{chain.length > 1 ? `-${chain.length - 1}` : ''}</span><i /></div>
+        <button type="button" className="mast-catalogue" onClick={() => useCatalogue.getState().set(true)}>目录</button>
       </header>
 
       <PartSearch />
 
       <MachineSwitcher rootId={root.id} />
+      <MachineStrip rootId={root.id} />
 
       <div className="subject">
         {chain.length > 1 && (
@@ -110,37 +112,73 @@ export function TitleColumn() {
 
 const VIEWS: Array<[ViewMode, string]> = [['perspective', '透视'], ['drawing', '三视图'], ['elevation', '主视'], ['plan', '俯视']];
 
-export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: 'plate' | 'video' | 'json') => void; busy: boolean; recording: number | null }) {
+type ExportKind = 'plate' | 'video' | 'json';
+
+const EXPORTS: Array<[ExportKind, string, string]> = [
+  ['plate', '图版 PNG', 'A4 横版爆炸图：编号、明细表、标题栏'],
+  ['video', '拆装动画', '整机 → 拆开 → 合拢，WebM 视频'],
+  ['json', '零件数据', '零件表与讲解步骤，JSON'],
+];
+
+export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: ExportKind) => void; busy: boolean; recording: number | null }) {
   const { view, viewNonce, set } = useStudio();
   const machine = useMachine();
   return (
     <nav className="plate-meta" aria-label="视图">
       <button type="button" className="meta-catalogue" onClick={() => useCatalogue.getState().set(true)} title="全部机器一览">目录</button>
-      <span className="meta-sep" />
-      <div className="views">
+      <div className="views" role="group" aria-label="视图">
         {VIEWS.map(([id, label]) => (
-          <button key={id} type="button" className={view === id ? 'is-on' : ''} onClick={() => set({ view: id, focus: null, viewNonce: viewNonce + 1 })}>{label}</button>
+          <button key={id} type="button" aria-pressed={view === id} className={view === id ? 'is-on' : ''} onClick={() => set({ view: id, focus: null, viewNonce: viewNonce + 1 })}>{label}</button>
         ))}
       </div>
-      <span className="meta-sep" />
-      <button
-        type="button"
-        onClick={() => {
-          clearEdits();
-          set({ view, focus: null, viewNonce: viewNonce + 1, explode: 0, selected: null, localExplode: null, section: false, step: 0, deep: false });
-        }}
-      >
+      <button type="button" className="meta-action" onClick={() => restoreAll(machine.steps[0])} title="合拢所有零件，撤销挪动、缩放和隐藏，关掉剖视，回到第一步和默认视角">
         复位
       </button>
-      <button type="button" onClick={() => restoreAll(machine.steps[0])} title="合拢所有零件，撤销挪动和缩放，关掉剖视、挪动、全部展开，回到第一步和默认视角">
-        完全恢复
-      </button>
-      <button type="button" disabled={busy} onClick={() => onExport('plate')} title="A4 横版爆炸图：编号气泡、明细表、标题栏">图版 ↓</button>
-      <button type="button" disabled={busy} onClick={() => onExport('video')} title="录制整机 → 拆开 → 合拢（WebM）" className={recording !== null ? 'is-recording' : ''}>
-        {recording !== null ? `录制中 ${recording.toFixed(0)}s` : '动画 ●'}
-      </button>
-      <button type="button" disabled={busy} onClick={() => onExport('json')}>JSON ↓</button>
+      <ExportMenu onExport={onExport} busy={busy} recording={recording} />
     </nav>
+  );
+}
+
+/** Plate, animation and data exports behind one button. */
+function ExportMenu({ onExport, busy, recording }: { onExport: (kind: ExportKind) => void; busy: boolean; recording: number | null }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !(e.target as HTMLElement).closest('.export')) setOpen(false);
+    };
+    window.addEventListener('pointerdown', close);
+    window.addEventListener('keydown', close);
+    return () => {
+      window.removeEventListener('pointerdown', close);
+      window.removeEventListener('keydown', close);
+    };
+  }, [open]);
+  return (
+    <div className="export">
+      <button
+        type="button"
+        className={`meta-action${recording !== null ? ' is-recording' : ''}`}
+        disabled={busy}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
+        {recording !== null ? `录制中 ${recording.toFixed(0)}s` : '导出'} <span aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <ul className="export-menu" role="menu">
+          {EXPORTS.map(([kind, label, hint]) => (
+            <li key={kind} role="none">
+              <button type="button" role="menuitem" onClick={() => { setOpen(false); onExport(kind); }}>
+                <span className="export-label">{label}</span>
+                <span className="export-hint">{hint}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -167,6 +205,28 @@ function MachineSwitcher({ rootId }: { rootId: string }) {
           </button>
         ))}
       </div>
+    </nav>
+  );
+}
+
+/** Narrow screens: every machine in one row that scrolls sideways, the open one kept in view. */
+function MachineStrip({ rootId }: { rootId: string }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const strip = ref.current;
+    const on = strip?.querySelector<HTMLElement>('.is-on');
+    if (strip && on) strip.scrollTo({ left: on.offsetLeft - (strip.clientWidth - on.offsetWidth) / 2, behavior: 'smooth' });
+  }, [rootId]);
+  return (
+    <nav className="machine-strip" aria-label="选择机器" ref={ref}>
+      {GROUPS.map((g) => (
+        <Fragment key={g.name}>
+          <span className="strip-group">{g.name}</span>
+          {g.machines.map((m) => (
+            <button key={m.id} type="button" className={m.id === rootId ? 'is-on' : ''} onClick={() => selectMachine(m.id)}>{m.name}</button>
+          ))}
+        </Fragment>
+      ))}
     </nav>
   );
 }

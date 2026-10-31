@@ -101,7 +101,8 @@ export function clearEdits(id?: string) {
 
 /**
  * Put everything back as it was when the machine was opened: reassembled,
- * no edits, no section, default view and switches, first study step.
+ * no edits, no section, default camera and switches, first study step. The
+ * view mode (perspective, three-view, …) stays as it is.
  */
 export function restoreAll(first: { state: { running: boolean; select: string | null; focus: string | null }; apply?: () => void }) {
   partEdits.clear();
@@ -109,7 +110,7 @@ export function restoreAll(first: { state: { running: boolean; select: string | 
   motion.local = 0;
   first.apply?.();
   useStudio.setState((s) => ({
-    explode: 0, deep: false, section: false, running: first.state.running, view: 'perspective', focus: first.state.focus,
+    explode: 0, deep: false, section: false, running: first.state.running, focus: first.state.focus,
     viewNonce: s.viewNonce + 1, selected: first.state.select, hovered: null, localExplode: null, step: 0, moveMode: false,
     labels: typeof window === 'undefined' || window.innerWidth >= 700, hiddenLines: true, projection: true, editNonce: s.editNonce + 1, hidden: [], solo: null,
   }));

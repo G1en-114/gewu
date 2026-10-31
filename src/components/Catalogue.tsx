@@ -64,6 +64,8 @@ export function Catalogue() {
                 const { parts, depth } = reach(m);
                 return (
                   <button key={m.id} type="button" className="catalogue-card" onClick={() => { selectMachine(m.id); set(false); }}>
+                    {/* Line drawings made by scripts/make-thumbs.mjs. */}
+                    <img className="card-thumb" src={`${import.meta.env.BASE_URL}thumbs/${m.id}.webp`} alt="" loading="lazy" decoding="async" />
                     <span className="card-no">{m.drawingNo}</span>
                     <span className="card-name">{m.name}</span>
                     <span className="card-en">{m.en}</span>
