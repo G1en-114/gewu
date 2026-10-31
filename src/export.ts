@@ -144,7 +144,7 @@ export async function exportPlate() {
   ctx.fillRect(150, 440, 640, 2);
   ctx.font = `500 54px ${EN}`;
   ctx.letterSpacing = '12px';
-  ctx.fillText('MECHANISM STUDIO', 150, 530);
+  ctx.fillText('INKWORK', 150, 530);
   ctx.font = `400 46px ${ZH}`;
   ctx.letterSpacing = '16px';
   ctx.fillText(`${machine.name} · 爆炸图`, 150, 620);
@@ -291,7 +291,7 @@ export async function recordTeardown(onProgress: (seconds: number | null) => voi
     ctx.fillText(`格物 · ${machine.name}`, 32 * s, out.height - 34 * s);
     ctx.fillStyle = PALETTE.rust;
     ctx.font = `500 ${Math.round(16 * s)}px ${EN}`;
-    ctx.fillText('MECHANISM STUDIO · FIG. 01', 32 * s, out.height - 64 * s);
+    ctx.fillText('INKWORK · FIG. 01', 32 * s, out.height - 64 * s);
     onProgress((performance.now() - started) / 1000);
     requestAnimationFrame(draw);
   };

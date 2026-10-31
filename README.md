@@ -1,4 +1,4 @@
-# 格物 / Mechanism Studio
+# 格物 / Inkwork
 
 面向《工程制图》教学的线稿风格 3D 装配体图版。
 

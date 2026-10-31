@@ -30,7 +30,7 @@ export function TitleColumn() {
       <header className="masthead">
         <h1 className="mast-title">格物</h1>
         <div className="mast-rule" />
-        <p className="mast-en">MECHANISM STUDIO</p>
+        <p className="mast-en">INKWORK</p>
         <p className="mast-zh">工程制图 · 交互拆解</p>
         <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(root) + 1)}{chain.length > 1 ? `-${chain.length - 1}` : ''}</span><i /></div>
         <button type="button" className="mast-catalogue" onClick={() => useCatalogue.getState().set(true)}>目录</button>

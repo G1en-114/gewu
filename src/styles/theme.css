@@ -129,7 +129,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
 .mast-en {
   margin: 0;
   font: 500 23px/1 var(--serif-en);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.42em;
 }
 .mast-zh { margin: 12px 0 0; font-size: 19px; letter-spacing: 0.32em; font-weight: 400; }
 .fig-rule { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
@@ -417,7 +417,7 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
     padding: 18px 0 10px; border-bottom: 1px solid var(--hair-strong);
   }
   .mast-title { font-size: 34px; line-height: 1; letter-spacing: 0.04em; }
-  .mast-en { font-size: 13px; letter-spacing: 0.24em; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mast-en { font-size: 13px; letter-spacing: 0.36em; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mast-rule, .mast-zh, .fig-rule { display: none; }
   .mast-catalogue { display: block; font-size: 13px; letter-spacing: 0.2em; color: var(--rust); padding: 6px 0 6px 10px; }
 
