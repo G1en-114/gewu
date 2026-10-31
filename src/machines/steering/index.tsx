@@ -25,7 +25,8 @@ const PINION_R = 0.022;
 const ACK = Math.atan(KP / WHEELBASE);
 /** Steering arm at rest, from the kingpin (x, z) for the +z wheel; mirrored for −z. */
 const arm0 = (side: number): [number, number] => [-ARM * Math.cos(ACK), -side * ARM * Math.sin(ACK)];
-const TIE = KP - ARM * Math.sin(ACK) - RACK_HALF;
+/** Tie rod length: the arm-end-to-rack-end distance with the wheels straight. */
+const TIE = Math.hypot(arm0(1)[0] - RACK_X, KP + arm0(1)[1] - RACK_HALF);
 
 export const steerMotion = { t: 0 };
 export function SteerDriver() {
