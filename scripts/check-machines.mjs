@@ -11,7 +11,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { assemblyIds, browser, sleep } from './edge.mjs';
+import { browser, sleep } from './edge.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name) => { const i = args.indexOf(name); return i < 0 ? undefined : args.splice(i, 2)[1]; };
@@ -20,8 +20,6 @@ const jobs = Number(flag('--jobs') ?? 3);
 const shots = flag('--shots');
 const [base = 'http://localhost:5199/'] = args;
 if (shots) mkdirSync(shots, { recursive: true });
-
-const ids = assemblyIds().filter((m) => !only || only.some((o) => m === o || m.startsWith(o)));
 
 async function check(b, m) {
   b.errors = [];
@@ -42,10 +40,12 @@ async function check(b, m) {
   return uniq.length === 0;
 }
 
+const first = await browser(base);
+const ids = (await first.assemblies()).map((a) => a.id).filter((m) => !only || only.some((o) => m === o || m.startsWith(o)));
 const queue = [...ids];
 let bad = 0;
-await Promise.all(Array.from({ length: Math.min(jobs, ids.length) }, async () => {
-  const b = await browser(base);
+await Promise.all(Array.from({ length: Math.max(1, Math.min(jobs, ids.length)) }, async (_, i) => {
+  const b = i === 0 ? first : await browser(base);
   for (let m; (m = queue.shift()); ) if (!(await check(b, m))) bad += 1;
   b.close();
 }));

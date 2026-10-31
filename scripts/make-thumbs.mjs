@@ -10,7 +10,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { assemblyIds, browser, sleep } from './edge.mjs';
+import { browser, sleep } from './edge.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name) => { const i = args.indexOf(name); return i < 0 ? undefined : args.splice(i, 2)[1]; };
@@ -22,7 +22,6 @@ mkdirSync(out, { recursive: true });
 
 const W = 560;
 const H = 350;
-const ids = assemblyIds().filter((m) => !m.includes('/') && (!only || only.includes(m)));
 
 /** In the page: the drawn pixels' bounding box; with `encode`, the W×H WebP crop of it instead. */
 const crop = (encode) => `(() => {
@@ -79,9 +78,12 @@ async function capture(b, m) {
   return b.eval(crop(true));
 }
 
+const first = await browser(base, { width: 1500, height: 940 });
+// Thumbnails are for the catalogue: top-level machines only.
+const ids = (await first.assemblies()).filter((a) => !a.parent).map((a) => a.id).filter((m) => !only || only.includes(m));
 const queue = [...ids];
-await Promise.all(Array.from({ length: Math.min(jobs, ids.length) }, async () => {
-  const b = await browser(base, { width: 1500, height: 940 });
+await Promise.all(Array.from({ length: Math.max(1, Math.min(jobs, ids.length)) }, async (_, i) => {
+  const b = i === 0 ? first : await browser(base, { width: 1500, height: 940 });
   for (let m; (m = queue.shift()); ) {
     // A blank canvas now and then (a dev-server reload, a lost context): try once more.
     const url = (await capture(b, m)) ?? (await capture(b, m));

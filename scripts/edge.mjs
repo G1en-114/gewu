@@ -3,22 +3,13 @@
  * thumbnail scripts.
  */
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-/** Every assembly id declared under src/machines (top level and subassemblies), sorted. */
-export function assemblyIds() {
-  const files = (dir) => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? files(join(dir, f)) : [join(dir, f)]));
-  return [...new Set(files(fileURLToPath(new URL('../src/machines', import.meta.url)))
-    .filter((f) => /\.tsx?$/.test(f) && !f.endsWith('.test.ts'))
-    .flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/(?:level\(\{|MachineDef = \{)\s*id: '([^']+)'/g)].map((m) => m[1])))].sort();
-}
 
 /**
  * Start a headless Edge on `base` with the catalogue already dismissed.
@@ -53,6 +44,8 @@ export async function browser(base, { width = 1280, height = 800 } = {}) {
     await sleep(wait);
   };
   b.close = () => { ws.close(); proc.kill(); };
+  /** Every registered assembly as the app lists it: [{ id, parent }], sorted by id. */
+  b.assemblies = async () => (await b.eval('window.gewu.assemblies()')).sort((x, y) => (x.id < y.id ? -1 : 1));
   await b.send('Runtime.enable');
   await b.send('Page.enable');
   await b.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
