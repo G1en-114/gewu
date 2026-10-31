@@ -60,4 +60,4 @@
 
 ## 自检
 
-`npm run build && npx vite preview --port 5199` 后运行 `node scripts/check-machines.mjs`：在无头 Edge 里逐个打开所有机器与子组件，切到最后一步和三视图，汇报控制台错误。
+`npm run build && npx vite preview --port 5199` 后运行 `node scripts/check-machines.mjs`：在无头 Edge 里逐个打开所有机器与子组件，切到最后一步和三视图，汇报控制台错误。可加 `--jobs 4`（并发）、`--only watch,model-t/`（只测部分组件）、`--shots <目录>`（每台存一张拆开后的截图，用来检查取景）。
