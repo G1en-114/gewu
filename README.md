@@ -65,3 +65,7 @@
 ## 目录缩略图
 
 目录卡片上的线稿图在 `public/thumbs/<id>.webp`，由 `node scripts/make-thumbs.mjs http://localhost:5188/`（先开 dev 或 preview 服务）在无头 Edge 里逐台渲染、按线稿裁切生成。改了某台机器的模型或镜头后，用 `--only <id>` 重新生成它。
+
+## 用 AI 新建机器
+
+仓库带了一个 Claude Code 技能 `.claude/skills/new-machine/`：在这个项目里对 Claude 说“加一台 X”，它会按 `SKILL.md` 的流程（定题与坐标 → 零件表与拆解时序 → 用 kit 建模 → 联动与单元测试 → 子组件分级 → 注册 → 自检截图逐张检查 → 缩略图 → 提交）做出一台新机器；`template.tsx` 是可直接复制的最小骨架。
