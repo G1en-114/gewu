@@ -2,8 +2,8 @@
  * Headless Edge over the DevTools protocol, shared by the self-check and the
  * thumbnail scripts.
  */
-import { spawn } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -11,14 +11,33 @@ const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const launched = [];
+// Every headless Edge gets a throwaway profile; kill the browsers and delete
+// their profiles when the script ends, however it ends (each one is ~80 MB).
+process.on('exit', () => {
+  for (const { proc, dir } of launched) {
+    if (proc.exitCode === null) spawnSync('taskkill', ['/T', '/F', '/PID', String(proc.pid)], { stdio: 'ignore' });
+    try { rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch {}
+  }
+});
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => process.exit(130));
+
+/** Start a headless Edge with its own temporary profile, cleaned up on exit. */
+export function spawnEdge(args) {
+  const dir = mkdtempSync(join(tmpdir(), 'edge-'));
+  const proc = spawn(EDGE, ['--headless=new', `--user-data-dir=${dir}`, ...args], { stdio: 'ignore' });
+  launched.push({ proc, dir });
+  return proc;
+}
+
 /**
  * Start a headless Edge on `base` with the catalogue already dismissed.
  * Console errors and exceptions collect in `errors`.
  */
 export async function browser(base, { width = 1280, height = 800 } = {}) {
   const port = 9300 + Math.floor(Math.random() * 500);
-  const proc = spawn(EDGE, ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), 'edge-'))}`,
-    '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--hide-scrollbars', `--window-size=${width},${height}`, 'about:blank'], { stdio: 'ignore' });
+  const proc = spawnEdge([`--remote-debugging-port=${port}`,
+    '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--hide-scrollbars', `--window-size=${width},${height}`, 'about:blank']);
   let target;
   for (let i = 0; i < 50 && !target; i++) {
     try { target = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find((t) => t.type === 'page'); } catch {}

@@ -1,9 +1,8 @@
 // Renders the title card, end card and caption overlays (transparent PNGs) with Edge.
 // Usage: node cards.mjs <out dir>
-import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnEdge } from '../edge.mjs';
 
 const out = process.argv[2];
 mkdirSync(out, { recursive: true });
@@ -84,7 +83,7 @@ writeFileSync(join(out, 'captions.json'), JSON.stringify(CAPTIONS));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const port = 9500 + Math.floor(Math.random() * 100);
-const proc = spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), 'edge-'))}`, '--hide-scrollbars', '--window-size=1920,1080', 'about:blank'], { stdio: 'ignore' });
+const proc = spawnEdge([`--remote-debugging-port=${port}`, '--hide-scrollbars', '--window-size=1920,1080', 'about:blank']);
 let t; for (let i = 0; i < 50 && !t; i++) { try { t = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find((x) => x.type === 'page'); } catch {} await sleep(200); }
 const ws = new WebSocket(t.webSocketDebuggerUrl); await new Promise((r) => ws.addEventListener('open', r));
 let id = 0; const p = new Map();

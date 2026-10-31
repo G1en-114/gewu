@@ -1,9 +1,8 @@
 // Records the demo scenes from the live app with the GPU, one folder of
 // timestamped JPEG frames per scene. Usage: node record.mjs <out dir> [scene ...]
-import { spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnEdge } from '../edge.mjs';
 
 const [out, ...only] = process.argv.slice(2);
 const BASE = 'http://localhost:5199/';
@@ -18,8 +17,8 @@ const ev = async (e) => (await send('Runtime.evaluate', { expression: e, awaitPr
 /** A fresh GPU browser for each scene, so memory from the last one never piles up. */
 async function launch() {
   const port = 9700 + Math.floor(Math.random() * 200);
-  proc = spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), 'edge-'))}`,
-    '--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars', `--window-size=${W},${H}`, 'about:blank'], { stdio: 'ignore' });
+  proc = spawnEdge([`--remote-debugging-port=${port}`,
+    '--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars', `--window-size=${W},${H}`, 'about:blank']);
   let t; for (let i = 0; i < 50 && !t; i++) { try { t = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find((x) => x.type === 'page'); } catch {} await sleep(200); }
   ws = new WebSocket(t.webSocketDebuggerUrl); await new Promise((r) => ws.addEventListener('open', r));
   ws.addEventListener('message', (e) => {
