@@ -23,12 +23,12 @@ export function IrisDriver() {
 }
 /** 0 = wide open, 1 = stopped down. */
 export const closing = (t: number) => 0.5 - 0.5 * Math.cos(t * 0.6);
-/** Blade swing about its pivot (negative = out of the light path). */
-const swing = (k: number) => -1.0 + k * 1.45;
+/** Blade swing about its pivot (positive = out of the light path): +1.0 gives f/2, −0.42 gives f/16. */
+const swing = (k: number) => 1.0 - k * 1.42;
 const ARC: [number, number, number, number, number] = [-11, 7.5, 14.5, -0.35, 2.05];
 
 /** Opening diameter: twice the nearest approach of a blade to the axis. */
-function diameter(k: number) {
+export function diameter(k: number) {
   const [c, r0, r1, t0, t1] = ARC;
   const th = swing(k);
   let best = Infinity;
