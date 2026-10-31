@@ -139,7 +139,9 @@ export function sectionConstant(depth: number) {
   const f = Math.min(far, -span * 0.02);
   // Never quite reach either skin, so a sliver of the part always remains to read.
   const d = THREE.MathUtils.clamp(depth, 0.02, 0.98);
-  return d <= 0.5 ? n * (1 - d * 2) : f * ((d - 0.5) * 2);
+  // Squared, so the slider is fine near the centre line, where the insides are,
+  // and coarse out at the skins (a 747's wings would otherwise eat most of it).
+  return d <= 0.5 ? n * (1 - d * 2) ** 2 : f * ((d - 0.5) * 2) ** 2;
 }
 
 /** Eases the explode, local explode and section sweep toward the store. */
