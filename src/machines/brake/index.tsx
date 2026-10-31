@@ -201,7 +201,7 @@ export const brake: MachineDef = level({
   guides: [{ stage: 'caliper', origin: [0, PAD_Y[1] + 12, 0] }],
   centreLines: [[[-80, 0, 0], [80, 0, 0], DISC_R + 6], [[-120, PY, 0], [60, PY, 0]]],
   steps: STEPS,
-  camera: { target: [-30, 60, 0], offset: [-330, 220, 600], orthoDistance: 3000, exploded: { target: [-30, 80, 20], scale: 1.4 } },
+  camera: { target: [-40, 30, 0], offset: [-460, 300, 820], orthoDistance: 3000, exploded: { target: [-30, 80, 20], scale: 1.4 } },
   Model: DiscBrake,
   Driver: BrakeDriver,
   Controls: BrakeControls,
