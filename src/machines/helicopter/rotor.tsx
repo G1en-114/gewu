@@ -9,13 +9,15 @@ import type { MachineDef, PartDef, StepDef } from '../types';
 import { Box, Cyl, Hoop, level, Turn } from '../kit';
 
 /**
- * Four-blade helicopter rotor head with a swashplate. Mast along y, rotor
- * turning about it; the blades are cut short so the head stays in view.
- * Metres; +x is forward.
+ * Four-blade helicopter rotor head with a swashplate, on the main gearbox.
+ * Mast along y, rotor turning about it; standing alone the blades are cut
+ * short so the head stays in view (the helicopter draws them full length).
+ * Metres; +x is forward, gearbox base at y = 0.
  */
 
 const SWASH_Y = 0.72;
-const HUB_Y = 1.3;
+/** Hub height above the gearbox base. */
+export const HUB_Y = 1.3;
 const RING_R = 0.17;
 const HORN_R = 0.22;
 const LEAD = 0.07;
@@ -63,7 +65,7 @@ function foot(i: number, out = new THREE.Vector3()) {
   const z = -RING_R * Math.sin(a) - LEAD * Math.cos(a);
   return onPlate(x, z, out);
 }
-const pitchOf = (i: number) => (foot(i).y - SWASH_Y) * 3.2 + 0.06;
+export const pitchOf = (i: number) => (foot(i).y - SWASH_Y) * 3.2 + 0.06;
 
 function Plate({ spin, children }: { spin?: boolean; children: ReactNode }) {
   const outer = useRef<THREE.Group>(null);
@@ -80,7 +82,7 @@ function Plate({ spin, children }: { spin?: boolean; children: ReactNode }) {
 }
 
 /** A rod between two moving points. */
-function Strut({ ends, r }: { ends: () => [THREE.Vector3, THREE.Vector3]; r: number }) {
+export function Strut({ ends, r }: { ends: () => [THREE.Vector3, THREE.Vector3]; r: number }) {
   const ref = useRef<THREE.Group>(null);
   const up = new THREE.Vector3(0, 1, 0);
   const q = new THREE.Quaternion();
@@ -121,7 +123,7 @@ function Blade({ i, grip }: { i: number; grip: boolean }) {
   );
 }
 
-export function RotorHead() {
+export function RotorHead({ blades = true }: { blades?: boolean }) {
   return (
     <group>
       <Part id="gearbox">
@@ -144,10 +146,12 @@ export function RotorHead() {
         <Spinning>{Array.from({ length: BLADES }, (_, i) => <Blade key={i} i={i} grip />)}</Spinning>
         <Callout id="grips" p={[0.3, HUB_Y + 0.06, 0.1]} />
       </Part>
-      <Part id="blades">
-        <Spinning>{Array.from({ length: BLADES }, (_, i) => <Blade key={i} i={i} grip={false} />)}</Spinning>
-        <Callout id="blades" p={[1.6, HUB_Y + 0.05, 0.2]} />
-      </Part>
+      {blades && (
+        <Part id="blades">
+          <Spinning>{Array.from({ length: BLADES }, (_, i) => <Blade key={i} i={i} grip={false} />)}</Spinning>
+          <Callout id="blades" p={[1.6, HUB_Y + 0.05, 0.2]} />
+        </Part>
+      )}
       <Part id="rotating">
         <Plate spin>
           <Hoop k="ro-rot" c={[0, 0.03, 0]} R={RING_R - 0.02} r={0.022} seg={40} />
@@ -243,15 +247,16 @@ const STEPS: StepDef[] = [
   },
 ];
 
-export const rotor: MachineDef = level({
-  id: 'rotor',
+export const rotorLevel: MachineDef = level({
+  id: 'helicopter/rotor',
+  parent: 'helicopter',
   unit: 2.2,
   bounds: [[-2.3, 0, -2.3], [2.3, 1.5, 2.3]],
-  name: '直升机旋翼头',
-  en: 'Helicopter Rotor Head',
-  subtitle: '装配体 · 倾斜盘 · 总距与周期变距',
+  name: '旋翼头与主减速器',
+  en: 'Rotor Head & Main Gearbox',
+  subtitle: '子组件 · 倾斜盘 · 总距与周期变距',
   summary: '9 种零件 · 倾斜盘让旋转的桨叶周期变距，会动',
-  drawingNo: 'GW-ZS-00',
+  drawingNo: 'GW-ZS-01',
   scale: '1 : 20',
   parts: PARTS,
   boltSets: {},
