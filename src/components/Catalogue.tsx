@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { GROUPS, machineById } from '../machines';
 import type { MachineDef } from '../machines/types';
 import { selectMachine } from '../state';
+import { useGuide } from './Guide';
 
 const SEEN = 'gewu-catalogue-seen';
 
@@ -79,7 +80,10 @@ export function Catalogue() {
             </div>
           </section>
         ))}
-        <p className="catalogue-foot">点卡片进入 · Esc 关闭 · 之后可以随时从右上角“目录”回到这里</p>
+        <p className="catalogue-foot">
+          点卡片进入 · Esc 关闭 · 之后可以随时从右上角“目录”回到这里 ·{' '}
+          <button type="button" className="catalogue-guide" onClick={() => { set(false); useGuide.getState().set(true); }}>第一次用？看使用说明</button>
+        </p>
       </div>
     </div>
   );

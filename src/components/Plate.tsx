@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMachines, GROUPS, lineage, MACHINES, machineById, useMachine } from '../machines';
 import type { MachineDef } from '../machines/types';
 import { useCatalogue } from './Catalogue';
+import { useGuide } from './Guide';
 import { aimAt, clearEdits, editOf, partEdits, restoreAll, selectMachine, useStudio, type ViewMode } from '../state';
 import { useTheme } from '../theme';
 
@@ -33,7 +34,10 @@ export function TitleColumn() {
         <p className="mast-en">INKWORK</p>
         <p className="mast-zh">工程制图 · 交互拆解</p>
         <div className="fig-rule"><span>FIG. {pad(MACHINES.indexOf(root) + 1)}{chain.length > 1 ? `-${chain.length - 1}` : ''}</span><i /></div>
-        <button type="button" className="mast-catalogue" onClick={() => useCatalogue.getState().set(true)}>目录</button>
+        <div className="mast-buttons">
+          <button type="button" className="mast-catalogue" onClick={() => useGuide.getState().set(true)}>说明</button>
+          <button type="button" className="mast-catalogue" onClick={() => useCatalogue.getState().set(true)}>目录</button>
+        </div>
       </header>
 
       <PartSearch />
@@ -127,6 +131,7 @@ export function PlateMeta({ onExport, busy, recording }: { onExport: (kind: Expo
   return (
     <nav className="plate-meta" aria-label="视图">
       <button type="button" className="meta-catalogue" onClick={() => useCatalogue.getState().set(true)} title="全部机器一览">目录</button>
+      <button type="button" className="meta-action meta-guide" onClick={() => useGuide.getState().set(true)} title="怎么使用">说明</button>
       <div className="views" role="group" aria-label="视图">
         {VIEWS.map(([id, label]) => (
           <button key={id} type="button" aria-pressed={view === id} className={view === id ? 'is-on' : ''} onClick={() => set({ view: id, focus: null, viewNonce: viewNonce + 1 })}>{label}</button>

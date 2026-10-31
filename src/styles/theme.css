@@ -611,3 +611,33 @@ button:focus-visible, input:focus-visible { outline: 1px solid var(--rust); outl
     linear-gradient(90deg, rgb(var(--ink-rgb) / 0.06) 1px, transparent 1px) 0 0 / 14px 14px,
     rgb(var(--paper-rgb) / 0.6);
 }
+
+/* ── Guide (使用说明) ─────────────────────────────── */
+
+.mast-buttons { display: none; }
+.catalogue-guide { color: var(--rust); letter-spacing: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.guide-lead { margin: 16px 0 0; max-width: 46em; font-size: 14px; line-height: 1.9; color: var(--ink-2); }
+.guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px 32px; margin-top: 18px; }
+.guide-section { min-width: 0; border-top: 1px solid var(--hair-strong); padding-top: 10px; }
+.guide-section h3 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; font-size: 16px; font-weight: 600; letter-spacing: 0.12em; }
+.guide-num { font: 500 14px var(--serif-en); color: var(--rust); letter-spacing: 0.04em; }
+.guide-en { margin-left: auto; font: italic 500 13px var(--serif-en); color: var(--ink-3); letter-spacing: 0.02em; }
+.guide-section dl { margin: 0; display: grid; gap: 7px; }
+.guide-item { display: grid; grid-template-columns: 6em 1fr; gap: 10px; }
+.guide-item dt { font-size: 12.5px; letter-spacing: 0.1em; color: var(--ink); }
+.guide-item dd { margin: 0; font-size: 12.5px; line-height: 1.75; color: var(--ink-2); }
+.guide-keys { margin-top: 24px; border-top: 1px solid var(--ink); padding-top: 12px; }
+.guide-keys h3 { margin: 0 0 10px; font-size: 12px; font-weight: 400; letter-spacing: 0.3em; color: var(--ink-3); }
+.guide-keys ul { display: flex; flex-wrap: wrap; gap: 10px 26px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--ink-2); }
+.guide-keys kbd {
+  display: inline-block; min-width: 2.2em; margin-right: 8px; padding: 2px 7px; text-align: center;
+  font: 500 13px var(--serif-en); color: var(--ink); border: 1px solid var(--hair-strong); border-bottom-width: 2px; background: var(--paper);
+}
+@media (max-width: 1099px) {
+  .mast-buttons { display: flex; gap: 4px; }
+  .plate-meta .meta-guide { display: none; }
+}
+@media (max-width: 700px) {
+  .guide-grid { grid-template-columns: minmax(0, 1fr); }
+  .guide-item { grid-template-columns: 4.6em 1fr; }
+}
